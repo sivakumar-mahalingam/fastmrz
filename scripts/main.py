@@ -7,7 +7,6 @@ import pytesseract
 
 
 # Set the Tesseract path
-
 pytesseract.pytesseract.tesseract_cmd = r'/opt/homebrew/Cellar/tesseract/5.3.4_1/bin/tesseract'
 
 # Folder path of input data
