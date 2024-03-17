@@ -1,5 +1,3 @@
-# https://github.com/prachi-kedar/passport_MRZ/tree/master/data
-
 # import the necessary packages
 from imutils import paths
 import numpy as np
