@@ -1,5 +1,5 @@
-# import the necessary packages
 from imutils import paths
+from numba import njit
 import numpy as np
 import imutils
 import cv2
@@ -10,16 +10,17 @@ import pytesseract
 pytesseract.pytesseract.tesseract_cmd = r'/opt/homebrew/Cellar/tesseract/5.3.4_1/bin/tesseract'
 
 # Folder path of input data
-folder_path = '/Users/sivakumar.mahalingam/passport-mrz-reader/data/input/'
+folder_path = '/Users/sivakumar.mahalingam/passport-mrz-reader/data/'
 
 # initialize a rectangular and square structuring kernel
 rectKernel = cv2.getStructuringElement(cv2.MORPH_RECT, (13, 5))
 sqKernel = cv2.getStructuringElement(cv2.MORPH_RECT, (21, 21))
 
-# loop over the input image paths
-for imagePath in paths.list_images(folder_path):
+
+@njit()
+def get_roi(image_path):
     # load the image, resize it, and convert it to grayscale
-    image = cv2.imread(imagePath)
+    image = cv2.imread(image_path)
     image = imutils.resize(image, height=600)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
@@ -81,7 +82,16 @@ for imagePath in paths.list_images(folder_path):
     cv2.imshow("ROI", roi)
     cv2.waitKey(0)
 
+    return roi
+
+
+# loop over the input image paths
+for image_path in paths.list_images(folder_path):
+    roi = get_roi(image_path)
+
     # convert ROI image to text
     mrz_text = pytesseract.image_to_string(roi)
     # print the extracted MRZ text
     print(mrz_text)
+
+

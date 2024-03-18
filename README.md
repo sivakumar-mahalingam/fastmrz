@@ -1,6 +1,6 @@
 # passport-mrz-reader
 
-MRZ types
+# MRZ types
 
 The standard for MRZ code is strictly regulated and has to comply with [Doc 9303](https://www.icao.int/publications/pages/publication.aspx?docnum=9303). Machine Readable Travel Documents published by the International Civil Aviation Organization.
 
@@ -27,3 +27,6 @@ In a machine-readable zone, only Latin characters without diacritics are used, t
 **The bottom line of the passport’s MRZ**
 
 The first 9 characters of the second line of the passport’s machine-readable zone is the document number. Despite the fact that in most countries that use machine-readable zones in their documents, passport numbers are converted to a 9-digit form, in some cases, the total number of characters may be more or less. If there are more characters in the number, those that did not fit in the allotted 9 places go into the “optional data” zone. The 10th character is there to verify the correctness of the number and is calculated using a special algorithm based on the first 9. The following three characters indicate the citizenship of the passport holder. The citizenship code is written in the ISO 3166–1 alpha-3 international format (with some minor exceptions); there are additional codes such as for stateless persons (the characters would be XXA), or for refugees (XXB or XXC). The next 6 digits is the date of birth in the YYMMDD format, and the character following that date is the check digit, which is calculated by a special algorithm based on the date of birth. The next character indicates the gender of the passport holder: male (M), female (F), or a placeholder < in case the person has not decided on their gender or refused to provide it. The next 6 digits indicate the validity period of the passport in the YYMMDD format, followed by the check digit. The next 14 characters represent optional data at the discretion of the issuer. If there is no personal number, and no other information, this entire field is filled with placeholders. If the personal number data is not available, then its check digit will be indicated either as 0 or as a placeholder. The last digit on the bottom line of the MRZ passport is a check digit calculated using all the characters in the bottom line, except for the characters indicating the gender and citizenship.
+
+![](docs/mrz.gif)
+
