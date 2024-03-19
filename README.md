@@ -1,6 +1,21 @@
-# passport-mrz-reader
+# Passport MRZ Reader
 
-# MRZ types
+This repository extracts the Machine Readable Zone (MRZ) from passport images. The MRZ typically contains important information such as the passport holder's name, nationality, passport number, and date of birth.
+
+**Features:**
+
+- Automatically detects and extracts the MRZ region from passport images.
+- Utilizes contour detection to accurately identify the MRZ area.
+- Outputs the extracted MRZ region as text for further processing or analysis.
+
+**How to Use:**
+
+- Clone the repository to your local machine.
+- Install 'Tesseract OCR' engine
+- Install required dependencies(mentioned in requirements.txt).
+- Replace the default Tesseract model with 'data/eng.traineddata'
+
+### MRZ types
 
 The standard for MRZ code is strictly regulated and has to comply with [Doc 9303](https://www.icao.int/publications/pages/publication.aspx?docnum=9303). Machine Readable Travel Documents published by the International Civil Aviation Organization.
 
@@ -11,7 +26,7 @@ There are currently several types of ICAO standard machine-readable zones, which
 - MRP (all international passports, also known as TD-3), and MRV-A (machine-readable visas type A — issued by the USA, Japan, China, and others): consists of 2 lines, 44 characters each.
 
 
-# MRZ format
+### MRZ format
 Now, based on the example of a national passport, let us take a closer look at the MRZ composition.
 
 **The top line of the passport’s MRZ**
