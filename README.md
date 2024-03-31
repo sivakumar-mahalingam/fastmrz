@@ -1,7 +1,10 @@
 # Passport MRZ Reader
 
 ![License](https://img.shields.io/badge/license-AGPL%203.0-green)
-![](docs/LAGHIMA.png)
+<a href="https://github.com/sivakumar-mahalingam/passport-mrz-reader/" target="_blank">
+        <img src="docs/LAGHIMA.png" target="_blank" />
+</a>
+
 
 This repository extracts the Machine Readable Zone (MRZ) from passport images. The MRZ typically contains important information such as the passport holder's name, nationality, passport number, and date of birth.
 
