@@ -1,97 +1,129 @@
-from imutils import paths
-from numba import njit
 import numpy as np
-import imutils
 import cv2
+import tensorflow
 import pytesseract
 
 
 # Set the Tesseract path
 pytesseract.pytesseract.tesseract_cmd = r'/opt/homebrew/Cellar/tesseract/5.3.4_1/bin/tesseract'
 
-# Folder path of input data
-folder_path = '/Users/sivakumar.mahalingam/passport-mrz-reader/data/'
-
-# initialize a rectangular and square structuring kernel
-rectKernel = cv2.getStructuringElement(cv2.MORPH_RECT, (13, 5))
-sqKernel = cv2.getStructuringElement(cv2.MORPH_RECT, (21, 21))
-
-
-@njit()
-def get_roi(image_path):
-    # load the image, resize it, and convert it to grayscale
-    image = cv2.imread(image_path)
-    image = imutils.resize(image, height=600)
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-    # smooth the image using a 3x3 Gaussian, then apply the blackhat
-    # morphological operator to find dark regions on a light background
-    gray = cv2.GaussianBlur(gray, (3, 3), 0)
-    blackhat = cv2.morphologyEx(gray, cv2.MORPH_BLACKHAT, rectKernel)
-
-    # compute the Scharr gradient of the blackhat image and scale the result into the range [0, 255]
-    gradX = cv2.Sobel(blackhat, ddepth=cv2.CV_32F, dx=1, dy=0, ksize=-1)
-    gradX = np.absolute(gradX)
-    (minVal, maxVal) = (np.min(gradX), np.max(gradX))
-    gradX = (255 * ((gradX - minVal) / (maxVal - minVal))).astype("uint8")
-
-    # apply a closing operation using the rectangular kernel to close gaps in between letters
-    # then apply Otsu's thresholding method
-    gradX = cv2.morphologyEx(gradX, cv2.MORPH_CLOSE, rectKernel)
-    thresh = cv2.threshold(gradX, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-
-    # perform another closing operation, this time using the square kernel to close gaps between lines of the MRZ,
-    # then perform a series of erosions to break apart connected components
-    thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, sqKernel)
-    thresh = cv2.erode(thresh, None, iterations=4)
-
-    # during thresholding, it's possible that border pixels were included in the thresholding,
-    # so let's set 5% of the left and right borders to zero
-    p = int(image.shape[1] * 0.05)
-    thresh[:, 0:p] = 0
-    thresh[:, image.shape[1] - p:] = 0
-
-    # find contours in the thresholded image and sort them by their size
-    contours = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    contours = imutils.grab_contours(contours)
-    contours = sorted(contours, key=cv2.contourArea, reverse=True)
-
-    # loop over the contours
-    for c in contours:
-        # compute the bounding box of the contour and use the contour to compute the aspect ratio and coverage ratio
-        # of the bounding box width to the width of the image
-        (x, y, w, h) = cv2.boundingRect(c)
-        ar = w / float(h)
-        crWidth = w / float(gray.shape[1])
-
-        # check to see if the aspect ratio and coverage width are within acceptable criteria
-        if ar > 5 and crWidth > 0.75:
-            # pad the bounding box since we applied erosion and now need to re-grow it
-            pX = int((x + w) * 0.03)
-            pY = int((y + h) * 0.03)
-            (x, y) = (x - pX, y - pY)
-            (w, h) = (w + (pX * 2), h + (pY * 2))
-
-            # extract the ROI from the image and draw a bounding box surrounding the MRZ
-            roi = image[y:y + h, x:x + w].copy()
-            cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            break
-
-    # show the output images
-    cv2.imshow("Image", image)
-    cv2.imshow("ROI", roi)
-    cv2.waitKey(0)
-
-    return roi
+class Laghima:
+    def __init__(self, model_path):
+        self.interpreter = tensorflow.lite.Interpreter(model_path=model_path)
+        self.interpreter.allocate_tensors()
+        self.input_details = self.interpreter.get_input_details()
+        self.output_details = self.interpreter.get_output_details()
 
 
-# loop over the input image paths
-for image_path in paths.list_images(folder_path):
-    roi = get_roi(image_path)
+    def _process_image(self, image_path):
+        image = cv2.imread(image_path, cv2.IMREAD_COLOR) if isinstance(image_path, str) else image_path
 
-    # convert ROI image to text
-    mrz_text = pytesseract.image_to_string(roi)
-    # print the extracted MRZ text
-    print(mrz_text)
+        image = cv2.resize(image, (256, 256), interpolation=cv2.INTER_NEAREST)
+        image = np.asarray(np.float32(image / 255))
+
+        if len(image.shape) > 3:
+            image = image[:, :, :3]
+        image = np.reshape(image, (1, 256, 256, 3))
+
+        return image
+
+
+    def _get_roi(self, output_data, image_path):
+        image = cv2.imread(image_path, cv2.IMREAD_COLOR) if isinstance(image_path, str) else image_path
+
+        output_data = (output_data[0, :, :, 0] > 0.35) * 1
+        output_data = np.uint8(output_data * 255)
+        altered_image = cv2.resize(output_data, (image.shape[1], image.shape[0]))
+
+        kernel = np.ones((5, 5), dtype=np.float32)
+        altered_image = cv2.erode(altered_image, kernel, iterations=3)
+        contours, hierarchy = cv2.findContours(altered_image.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+        if len(contours) == 0:
+            return None
+
+        c_area = np.zeros([len(contours)])
+        for j in range(len(contours)):
+            c_area[j] = cv2.contourArea(contours[j])
+
+        x, y, w, h = cv2.boundingRect(contours[np.argmax(c_area)])
+        roi_arr = image[y:y + h, x:x + w].copy()
+        roi = pytesseract.image_to_string(roi_arr)
+
+        return roi
+
+
+    def _cleanse_roi(self, input_text):
+        lines = input_text.split('\n')
+
+        filtered_lines = []
+
+        for line in lines:
+            if '<' in line:
+                line_without_spaces = ''.join(line.split())
+                filtered_lines.append(line_without_spaces)
+
+        output_text = '\n'.join(filtered_lines)
+
+        return output_text
+
+
+    def _parse_mrz(self, mrz_text):
+        mrz_lines = mrz_text.strip().split('\n')
+        if len(mrz_lines) not in [2, 3]:
+            raise ValueError("Invalid MRZ Format")
+
+        mrz_code_dict = {}
+        if len(mrz_lines) == 2:
+            mrz_code_dict['type'] = 'TD2' if len(mrz_lines[0]) == 36 else 'TD3'
+
+            mrz_code_dict['document_type'] = mrz_lines[0][:1]
+            mrz_code_dict['country_code'] = mrz_lines[0][2:5]
+            names = (mrz_lines[0][5:]).split('<<')
+            mrz_code_dict['surname'] = names[0].replace('<', ' ')
+            mrz_code_dict['given_name'] = names[1].replace('<', ' ')
+            mrz_code_dict['passport_number'] = mrz_lines[1][0:9].replace('<', '')
+            mrz_code_dict['nationality'] = mrz_lines[1][10:13]
+            mrz_code_dict['date_of_birth'] = mrz_lines[1][13:19]
+            mrz_code_dict['sex'] = mrz_lines[1][20]
+            mrz_code_dict['date_of_expiry'] = mrz_lines[1][21:27]
+        else:
+            #need to update
+            mrz_code_dict['type'] = 'TD1'
+
+            mrz_code_dict['document_type'] = mrz_lines[0][:2]
+            mrz_code_dict['country_code'] = mrz_lines[0][2:5]
+            names = (mrz_lines[0][5:]).split('<<')
+            mrz_code_dict['surname'] = names[0].replace('<', ' ')
+            mrz_code_dict['given_name'] = names[1].replace('<', ' ')
+            mrz_code_dict['passport_number'] = mrz_lines[1][0:9].replace('<', '')
+            mrz_code_dict['nationality'] = mrz_lines[1][10:13]
+            mrz_code_dict['date_of_birth'] = mrz_lines[1][13:19]
+            mrz_code_dict['sex'] = mrz_lines[1][20]
+            mrz_code_dict['date_of_expiry'] = mrz_lines[1][21:27]
+
+
+
+    def get_mrz_text(self, image_path):
+        image_array = self._process_image(image_path)
+        self.interpreter.set_tensor(self.input_details[0]['index'], image_array)
+        self.interpreter.invoke()
+        output_data = self.interpreter.get_tensor(self.output_details[0]['index'])
+        raw_roi = self._get_roi(output_data, image_path)
+        cleansed_roi = self._cleanse_roi(raw_roi)
+
+        return cleansed_roi
+
+    def read_mrz(self, image_path):
+        mrz_text = self.get_mrz_text(image_path)
+        return self._parse_mrz(mrz_text)
+
+
+AI = Laghima("/Users/sivakumar.mahalingam/laghima/models/mrz_seg.tflite")
+
+passport_mrz = AI.read_mrz("/Users/sivakumar.mahalingam/laghima/data/passport_uk.jpg")
+
+print(passport_mrz)
+
 
 
