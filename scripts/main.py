@@ -119,9 +119,9 @@ class Laghima:
         return self._parse_mrz(mrz_text)
 
 
-AI = Laghima("/Users/sivakumar.mahalingam/laghima/models/mrz_seg.tflite")
+laghima = Laghima("/Users/sivakumar.mahalingam/laghima/models/mrz_seg.tflite")
 
-passport_mrz = AI.read_mrz("/Users/sivakumar.mahalingam/laghima/data/passport_uk.jpg")
+passport_mrz = laghima.read_mrz("/Users/sivakumar.mahalingam/laghima/data/passport_uk.jpg")
 
 print(passport_mrz)
 
