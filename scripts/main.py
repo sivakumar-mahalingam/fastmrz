@@ -3,9 +3,9 @@ import cv2
 import tensorflow
 import pytesseract
 
-
 # Set the Tesseract path
 pytesseract.pytesseract.tesseract_cmd = r'/opt/homebrew/Cellar/tesseract/5.3.4_1/bin/tesseract'
+
 
 class Laghima:
     def __init__(self, model_path):
@@ -13,7 +13,6 @@ class Laghima:
         self.interpreter.allocate_tensors()
         self.input_details = self.interpreter.get_input_details()
         self.output_details = self.interpreter.get_output_details()
-
 
     def _process_image(self, image_path):
         image = cv2.imread(image_path, cv2.IMREAD_COLOR) if isinstance(image_path, str) else image_path
@@ -26,7 +25,6 @@ class Laghima:
         image = np.reshape(image, (1, 256, 256, 3))
 
         return image
-
 
     def _get_roi(self, output_data, image_path):
         image = cv2.imread(image_path, cv2.IMREAD_COLOR) if isinstance(image_path, str) else image_path
@@ -52,7 +50,6 @@ class Laghima:
 
         return roi
 
-
     def _cleanse_roi(self, input_text):
         lines = input_text.split('\n')
 
@@ -66,7 +63,6 @@ class Laghima:
         output_text = '\n'.join(filtered_lines)
 
         return output_text
-
 
     def _parse_mrz(self, mrz_text):
         mrz_lines = mrz_text.strip().split('\n')
@@ -88,7 +84,7 @@ class Laghima:
             mrz_code_dict['sex'] = mrz_lines[1][20]
             mrz_code_dict['date_of_expiry'] = mrz_lines[1][21:27]
         else:
-            #need to update
+            # need to update
             mrz_code_dict['type'] = 'TD1'
 
             mrz_code_dict['document_type'] = mrz_lines[0][:2]
@@ -104,8 +100,24 @@ class Laghima:
 
         return mrz_code_dict
 
+    def _get_check_digit(input_string):
+        weights_pattern = [7, 3, 1]
 
-    def get_mrz_text(self, image_path):
+        total = 0
+        for i, char in enumerate(input_string):
+            if char.isdigit():
+                value = int(char)
+            elif char.isalpha():
+                value = ord(char.upper()) - ord('A') + 10
+            else:
+                value = 0
+            total += value * weights_pattern[i % len(weights_pattern)]
+
+        check_digit = total % 10
+
+        return check_digit
+
+    def read_raw_mrz(self, image_path):
         image_array = self._process_image(image_path)
         self.interpreter.set_tensor(self.input_details[0]['index'], image_array)
         self.interpreter.invoke()
@@ -116,7 +128,7 @@ class Laghima:
         return cleansed_roi
 
     def read_mrz(self, image_path):
-        mrz_text = self.get_mrz_text(image_path)
+        mrz_text = self.read_raw_mrz(image_path)
         return self._parse_mrz(mrz_text)
 
 
@@ -125,6 +137,3 @@ laghima = Laghima("/Users/sivakumar.mahalingam/laghima/models/mrz_seg.tflite")
 passport_mrz = laghima.read_mrz("/Users/sivakumar.mahalingam/laghima/data/passport_uk.jpg")
 
 print(passport_mrz)
-
-
-
