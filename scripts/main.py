@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import tensorflow
 import pytesseract
+import os
 
 # Set the Tesseract path
 pytesseract.pytesseract.tesseract_cmd = r'/opt/homebrew/Cellar/tesseract/5.3.4_1/bin/tesseract'
@@ -132,7 +133,7 @@ class Laghima:
         return self._parse_mrz(mrz_text)
 
 
-laghima = Laghima("/Users/sivakumar.mahalingam/laghima/models/mrz_seg.tflite")
+laghima = Laghima(os.path.abspath('../models/mrz_seg.tflite'))
 
 passport_mrz = laghima.read_mrz("/Users/sivakumar.mahalingam/laghima/data/passport_uk.jpg")
 
