@@ -102,6 +102,7 @@ class Laghima:
             mrz_code_dict['sex'] = mrz_lines[1][20]
             mrz_code_dict['date_of_expiry'] = mrz_lines[1][21:27]
 
+        return mrz_code_dict
 
 
     def get_mrz_text(self, image_path):
