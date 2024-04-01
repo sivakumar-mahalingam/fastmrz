@@ -22,7 +22,7 @@ This repository extracts the Machine Readable Zone (MRZ) from passport images. T
 - Replace the default Tesseract model with 'data/eng.traineddata'
 
 
-### MRZ Wiki
+## MRZ Wiki
 
 <details>
     <summary><b>MRZ Types</b></summary>
