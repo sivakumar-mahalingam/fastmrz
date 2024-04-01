@@ -34,6 +34,8 @@ There are currently several types of ICAO standard machine-readable zones, which
 - TD-1 (e.g. citizen’s identification card, EU ID card, US Green Card): consists of 3 lines, 30 characters each.
 - TD-2 (e.g. Romania ID, old type of German ID), and MRV-B (machine-readable visas type B — e.g. Schengen visa): consists of 2 lines, 36 characters each.
 - MRP (all international passports, also known as TD-3), and MRV-A (machine-readable visas type A — issued by the USA, Japan, China, and others): consist of 2 lines, 44 characters each.
+
+![](docs/mrz_fields_distribution.png)
 </details>
 
 <details>
