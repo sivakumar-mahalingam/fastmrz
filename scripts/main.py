@@ -3,6 +3,8 @@ import cv2
 import tensorflow
 import pytesseract
 import os
+import re
+
 
 # Set the Tesseract path
 pytesseract.pytesseract.tesseract_cmd = r'/opt/homebrew/Cellar/tesseract/5.3.4_1/bin/tesseract'
@@ -52,18 +54,7 @@ class Laghima:
         return roi
 
     def _cleanse_roi(self, input_text):
-        lines = input_text.split('\n')
-
-        filtered_lines = []
-
-        for line in lines:
-            if '<' in line:
-                line_without_spaces = ''.join(line.split())
-                filtered_lines.append(line_without_spaces)
-
-        output_text = '\n'.join(filtered_lines)
-
-        return output_text
+        return re.sub(r'\s+\n*$', '', input_text)
 
     def _parse_mrz(self, mrz_text):
         mrz_lines = mrz_text.strip().split('\n')
@@ -135,6 +126,6 @@ class Laghima:
 
 laghima = Laghima(os.path.abspath('../models/mrz_seg.tflite'))
 
-passport_mrz = laghima.read_mrz("/Users/sivakumar.mahalingam/laghima/data/passport_uk.jpg")
+passport_mrz = laghima.read_mrz(os.path.abspath('../data/passport_uk.jpg')
 
 print(passport_mrz)
