@@ -92,7 +92,7 @@ class Laghima:
 
         return mrz_code_dict
 
-    def _get_check_digit(input_string):
+    def _get_check_digit(self, input_string):
         weights_pattern = [7, 3, 1]
 
         total = 0
