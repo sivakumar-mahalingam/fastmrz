@@ -9,14 +9,14 @@
 
 This repository extracts the Machine Readable Zone (MRZ) from passport images. The MRZ typically contains important information such as the passport holder's name, nationality, passport number, and date of birth.
 
-**🛠️Features:**
+**️Features:**
 
 
 - Automatically detects and extracts the MRZ region from passport images.
 - Utilizes contour detection to accurately identify the MRZ area.
 - Outputs the extracted MRZ region as text for further processing or analysis.
 
-**💡How to Use:**
+**How to Use:**
 
 - Clone the repository to your local machine.
 - Install 'Tesseract OCR' engine
@@ -27,7 +27,7 @@ This repository extracts the Machine Readable Zone (MRZ) from passport images. T
 ## MRZ Wiki
 
 <details>
-    <summary><b>📚MRZ Types</b></summary>
+    <summary><b>MRZ Types</b></summary>
 
 The standard for MRZ code is strictly regulated and has to comply with [Doc 9303](https://www.icao.int/publications/pages/publication.aspx?docnum=9303). Machine Readable Travel Documents published by the International Civil Aviation Organization.
 
@@ -40,7 +40,7 @@ There are currently several types of ICAO standard machine-readable zones, which
 </details>
 
 <details>
-    <summary><b>📝MRZ format</b></summary>
+    <summary><b>MRZ format</b></summary>
 Now, based on the example of a national passport, let us take a closer look at the MRZ composition.
 
 ![](docs/mrz_fields_distribution.png)
@@ -63,4 +63,22 @@ Now, based on the example of a national passport, let us take a closer look at t
 </details>
 
 ![](docs/mrz.gif)
+
+## Contributing
+
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
+Don't forget to give the project a star! Thanks again!
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+Distributed under the AGPL-3.0 License. See `LICENSE` for more information.
+
 
