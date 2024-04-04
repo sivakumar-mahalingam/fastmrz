@@ -1,6 +1,7 @@
-# Passport MRZ Reader
+# LAGHIMA
 
 ![License](https://img.shields.io/badge/license-AGPL%203.0-green)
+![License](https://img.shields.io/badge/python-3.11.8-blue)
 <a href="https://github.com/sivakumar-mahalingam/passport-mrz-reader/" target="_blank">
         <img src="docs/LAGHIMA.png" target="_blank" />
 </a>
@@ -8,13 +9,14 @@
 
 This repository extracts the Machine Readable Zone (MRZ) from passport images. The MRZ typically contains important information such as the passport holder's name, nationality, passport number, and date of birth.
 
-**Features:**
+**🛠️Features:**
+
 
 - Automatically detects and extracts the MRZ region from passport images.
 - Utilizes contour detection to accurately identify the MRZ area.
 - Outputs the extracted MRZ region as text for further processing or analysis.
 
-**How to Use:**
+**💡How to Use:**
 
 - Clone the repository to your local machine.
 - Install 'Tesseract OCR' engine
@@ -25,7 +27,7 @@ This repository extracts the Machine Readable Zone (MRZ) from passport images. T
 ## MRZ Wiki
 
 <details>
-    <summary><b>MRZ Types</b></summary>
+    <summary><b>📚MRZ Types</b></summary>
 
 The standard for MRZ code is strictly regulated and has to comply with [Doc 9303](https://www.icao.int/publications/pages/publication.aspx?docnum=9303). Machine Readable Travel Documents published by the International Civil Aviation Organization.
 
@@ -35,13 +37,13 @@ There are currently several types of ICAO standard machine-readable zones, which
 - TD-2 (e.g. Romania ID, old type of German ID), and MRV-B (machine-readable visas type B — e.g. Schengen visa): consists of 2 lines, 36 characters each.
 - MRP (all international passports, also known as TD-3), and MRV-A (machine-readable visas type A — issued by the USA, Japan, China, and others): consist of 2 lines, 44 characters each.
 
-![](docs/mrz_fields_distribution.png)
 </details>
 
 <details>
-    <summary><b>MRZ format</b></summary>
+    <summary><b>📝MRZ format</b></summary>
 Now, based on the example of a national passport, let us take a closer look at the MRZ composition.
 
+![](docs/mrz_fields_distribution.png)
 
 - **Top Line**
   <div>
