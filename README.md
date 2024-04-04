@@ -64,7 +64,7 @@ Now, based on the example of a national passport, let us take a closer look at t
 
 ![](docs/mrz.gif)
 
-## Contributing
+## Contribute
 
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
@@ -81,4 +81,7 @@ Don't forget to give the project a star! Thanks again!
 
 Distributed under the AGPL-3.0 License. See `LICENSE` for more information.
 
+## Show your support
+
+Give a ⭐️ if this project helped you!
 
