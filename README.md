@@ -1,7 +1,9 @@
 # LAGHIMA
 
 ![License](https://img.shields.io/badge/license-AGPL%203.0-green)
-![License](https://img.shields.io/badge/python-3.11.8-blue)
+![Python](https://img.shields.io/badge/python-3.11.8-blue)
+[![CodeQL](https://github.com/sivakumar-mahalingam/Laghima/actions/workflows/codeql.yml/badge.svg)](https://github.com/sivakumar-mahalingam/Laghima/actions/workflows/codeql.yml)
+
 <a href="https://github.com/sivakumar-mahalingam/passport-mrz-reader/" target="_blank">
         <img src="docs/LAGHIMA.png" target="_blank" />
 </a>
