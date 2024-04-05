@@ -147,7 +147,6 @@ class Laghima:
             # Final status
             mrz_code_dict['status'] = 'SUCCESS'
         else:
-            # need to update
             mrz_code_dict['mrz_type'] = 'TD1'
 
             # Line 1
