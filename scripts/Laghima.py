@@ -138,7 +138,7 @@ class Laghima:
             if self._get_check_digit(mrz_code_dict['date_of_expiry']) != mrz_text[1][27]:
                 return {'status': 'FAILURE', 'message': 'date of expiry checksum is not matching'}
             mrz_code_dict['date_of_expiry'] = self._format_date(mrz_code_dict['date_of_expiry'])
-            if mrz_text[1][-1] != self._get_final_check_digit(mrz_text[1], mrz_code_dict['type']):
+            if mrz_text[1][-1] != self._get_final_check_digit(mrz_text[1], mrz_code_dict['mrz_type']):
                 return {'status': 'FAILURE', 'message': 'final checksum is not matching'}
 
             # Final status
@@ -166,7 +166,7 @@ class Laghima:
             mrz_code_dict['date_of_expiry'] = self._format_date(mrz_code_dict['date_of_expiry'])
             mrz_code_dict['nationality'] = mrz_text[1][15:18]
             mrz_code_dict['optional_data_2'] = mrz_text[0][18:29].strip('<')
-            if mrz_text[1][-1] != self._get_final_check_digit(mrz_text, mrz_code_dict['type']):
+            if mrz_text[1][-1] != self._get_final_check_digit(mrz_text, mrz_code_dict['mrz_type']):
                 return {'status': 'FAILURE', 'message': 'final checksum is not matching'}
 
             # Line 3
