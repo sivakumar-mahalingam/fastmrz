@@ -9,7 +9,7 @@
 
 </a>
 
-This repository extracts the Machine Readable Zone (MRZ) from passport images. The MRZ typically contains important information such as the passport holder's name, nationality, passport number, and date of birth.
+This repository extracts the Machine Readable Zone (MRZ) from document images. The MRZ typically contains important information such as the document holder's name, nationality, document number, date of birth, etc.
 
 **️Features:**
 
@@ -21,9 +21,9 @@ This repository extracts the Machine Readable Zone (MRZ) from passport images. T
 **How to Use:**
 
 - Clone the repository to your local machine.
-- Install 'Tesseract OCR' engine
+- Install `Tesseract OCR` engine. And set `PATH` variable with the executable.
 - Install required dependencies(mentioned in requirements.txt).
-- Replace the default Tesseract model with 'data/eng.traineddata'
+- Replace the default Tesseract model with 'data/mrz_v2.traineddata'
 
 
 ## MRZ Wiki
