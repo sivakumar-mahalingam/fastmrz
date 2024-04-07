@@ -1,12 +1,11 @@
 # Fast MRZ
 
 ![License](https://img.shields.io/badge/license-AGPL%203.0-green)
-![Python](https://img.shields.io/badge/python-3.11.8-blue)
-[![CodeQL](https://github.com/sivakumar-mahalingam/Laghima/actions/workflows/codeql.yml/badge.svg)](https://github.com/sivakumar-mahalingam/Laghima/actions/workflows/codeql.yml)
+![Python](https://img.shields.io/badge/python-3.11.8-blue?logo=python)
+[![CodeQL](https://github.com/sivakumar-mahalingam/fastmrz/actions/workflows/codeql.yml/badge.svg)](https://github.com/sivakumar-mahalingam/fastmrz/actions/workflows/codeql.yml)
 
 <a href="https://github.com/sivakumar-mahalingam/passport-mrz-reader/" target="_blank">
         <img src="docs/FastMRZ.png" target="_blank" />
-
 </a>
 
 This repository extracts the Machine Readable Zone (MRZ) from document images. The MRZ typically contains important information such as the document holder's name, nationality, document number, date of birth, etc.
