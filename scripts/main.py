@@ -1,9 +1,11 @@
-from Laghima import Laghima
+from fastmrz import FastMRZ
 import os
 
-laghima = Laghima()
+# fast_mrz = FastMRZ(tesseract_path=r'/opt/homebrew/Cellar/tesseract/5.3.4_1/bin/tesseract')
+# fast_mrz = FastMRZ(tesseract_path=r'C:\\Program Files\\Tesseract-OCR\\tesseract.exe')
 
-# Need to add other type of documents in /data
-passport_mrz = laghima.read_mrz(os.path.abspath('../data/passport_uk.jpg'))
+fast_mrz = FastMRZ()
+passport_mrz = fast_mrz.read_mrz(os.path.abspath('../data/passport_uk.jpg'))
 print(passport_mrz)
 
+# Add README testing badge. Ref, https://github.com/mingrammer/diagrams/blob/master/README.md?plain=1

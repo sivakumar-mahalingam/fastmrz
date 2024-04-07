@@ -6,15 +6,17 @@ from datetime import datetime
 import os
 
 # Set the Tesseract path
-pytesseract.pytesseract.tesseract_cmd = r'/opt/homebrew/Cellar/tesseract/5.3.4_1/bin/tesseract'
+# pytesseract.pytesseract.tesseract_cmd = r'/opt/homebrew/Cellar/tesseract/5.3.4_1/bin/tesseract'
 # pytesseract.pytesseract.tesseract_cmd = 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
 
-class Laghima:
-    def __init__(self):
+
+class FastMRZ:
+    def __init__(self, tesseract_path=''):
         self.interpreter = tensorflow.lite.Interpreter(model_path=os.path.abspath('../models/mrz_seg.tflite'))
         self.interpreter.allocate_tensors()
         self.input_details = self.interpreter.get_input_details()
         self.output_details = self.interpreter.get_output_details()
+        self.tesseract_path = tesseract_path
 
     def _process_image(self, image_path):
         image = cv2.imread(image_path, cv2.IMREAD_COLOR) if isinstance(image_path, str) else image_path
@@ -29,6 +31,8 @@ class Laghima:
         return image
 
     def _get_roi(self, output_data, image_path):
+        if self.tesseract_path != '':
+            pytesseract.pytesseract.tesseract_cmd = self.tesseract_path
         image = cv2.imread(image_path, cv2.IMREAD_COLOR) if isinstance(image_path, str) else image_path
 
         output_data = (output_data[0, :, :, 0] > 0.35) * 1
@@ -57,13 +61,15 @@ class Laghima:
 
         selection_length = None
         for item in input_list:
-            if '<' in item  and len(item) in (30, 36, 44):
+            if '<' in item and len(item) in (30, 36, 44):
                 selection_length = len(item)
                 break
 
-        output_list = [item for item in input_list if len(item) >= selection_length]
+        new_list = [item for item in input_list if len(item) >= selection_length]
 
-        return output_list
+        output_text = '\n'.join(new_list)
+
+        return output_text
 
     def _get_final_check_digit(self, input_string, input_type):
         if input_type == 'TD3':
@@ -71,7 +77,8 @@ class Laghima:
         elif input_type == 'TD2':
             return self._get_check_digit(input_string[0:10] + input_string[13:20] + input_string[21:35])
         else:
-            return self._get_check_digit(input_string[0][5:] + input_string[1][:7] + input_string[1][8:15] + input_string[1][18:29])
+            return self._get_check_digit(
+                input_string[0][5:] + input_string[1][:7] + input_string[1][8:15] + input_string[1][18:29])
 
     def _get_check_digit(self, input_string):
         weights_pattern = [7, 3, 1]
@@ -109,36 +116,37 @@ class Laghima:
         return self._parse_mrz(mrz_text)
 
     def _parse_mrz(self, mrz_text):
-        if len(mrz_text) not in [2, 3]:
+        mrz_lines = mrz_text.strip().split('\n')
+        if len(mrz_lines) not in [2, 3]:
             return {'status': 'FAILURE', 'message': 'Invalid MRZ format'}
 
         mrz_code_dict = {}
-        if len(mrz_text) == 2:
+        if len(mrz_lines) == 2:
             # add optional data field
-            mrz_code_dict['mrz_type'] = 'TD2' if len(mrz_text[0]) == 36 else 'TD3'
+            mrz_code_dict['mrz_type'] = 'TD2' if len(mrz_lines[0]) == 36 else 'TD3'
 
             # Line 1
-            mrz_code_dict['document_type'] = mrz_text[0][:1]
-            mrz_code_dict['country_code'] = mrz_text[0][2:5]
-            names = mrz_text[0][5:].split('<<')
+            mrz_code_dict['document_type'] = mrz_lines[0][:1]
+            mrz_code_dict['country_code'] = mrz_lines[0][2:5]
+            names = mrz_lines[0][5:].split('<<')
             mrz_code_dict['surname'] = names[0].replace('<', ' ')
             mrz_code_dict['given_name'] = names[1].replace('<', ' ')
 
             # Line 2
-            mrz_code_dict['document_number'] = mrz_text[1][0:9].replace('<', '')
-            if self._get_check_digit(mrz_code_dict['document_number']) != mrz_text[1][9]:
+            mrz_code_dict['document_number'] = mrz_lines[1][0:9].replace('<', '')
+            if self._get_check_digit(mrz_code_dict['document_number']) != mrz_lines[1][9]:
                 return {'status': 'FAILURE', 'message': 'document number checksum is not matching'}
-            mrz_code_dict['nationality'] = mrz_text[1][10:13]
-            mrz_code_dict['date_of_birth'] = mrz_text[1][13:19]
-            if self._get_check_digit(mrz_code_dict['date_of_birth']) != mrz_text[1][19]:
+            mrz_code_dict['nationality'] = mrz_lines[1][10:13]
+            mrz_code_dict['date_of_birth'] = mrz_lines[1][13:19]
+            if self._get_check_digit(mrz_code_dict['date_of_birth']) != mrz_lines[1][19]:
                 return {'status': 'FAILURE', 'message': 'date of birth checksum is not matching'}
             mrz_code_dict['date_of_birth'] = self._format_date(mrz_code_dict['date_of_birth'])
-            mrz_code_dict['sex'] = mrz_text[1][20]
-            mrz_code_dict['date_of_expiry'] = mrz_text[1][21:27]
-            if self._get_check_digit(mrz_code_dict['date_of_expiry']) != mrz_text[1][27]:
+            mrz_code_dict['sex'] = mrz_lines[1][20]
+            mrz_code_dict['date_of_expiry'] = mrz_lines[1][21:27]
+            if self._get_check_digit(mrz_code_dict['date_of_expiry']) != mrz_lines[1][27]:
                 return {'status': 'FAILURE', 'message': 'date of expiry checksum is not matching'}
             mrz_code_dict['date_of_expiry'] = self._format_date(mrz_code_dict['date_of_expiry'])
-            if mrz_text[1][-1] != self._get_final_check_digit(mrz_text[1], mrz_code_dict['mrz_type']):
+            if mrz_lines[1][-1] != self._get_final_check_digit(mrz_lines[1], mrz_code_dict['mrz_type']):
                 return {'status': 'FAILURE', 'message': 'final checksum is not matching'}
 
             # Final status
@@ -147,30 +155,30 @@ class Laghima:
             mrz_code_dict['mrz_type'] = 'TD1'
 
             # Line 1
-            mrz_code_dict['document_type'] = mrz_text[0][:2].replace('<', ' ')
-            mrz_code_dict['country_code'] = mrz_text[0][2:5]
-            mrz_code_dict['document_number'] = mrz_text[0][5:14]
-            if self._get_check_digit(mrz_code_dict['document_number']) != mrz_text[0][14]:
+            mrz_code_dict['document_type'] = mrz_lines[0][:2].replace('<', ' ')
+            mrz_code_dict['country_code'] = mrz_lines[0][2:5]
+            mrz_code_dict['document_number'] = mrz_lines[0][5:14]
+            if self._get_check_digit(mrz_code_dict['document_number']) != mrz_lines[0][14]:
                 return {'status': 'FAILURE', 'message': 'document number checksum is not matching'}
-            mrz_code_dict['optional_data_1'] = mrz_text[0][15:].strip('<')
+            mrz_code_dict['optional_data_1'] = mrz_lines[0][15:].strip('<')
 
             # Line 2
-            mrz_code_dict['date_of_birth'] = mrz_text[1][:6]
-            if self._get_check_digit(mrz_code_dict['date_of_birth']) != mrz_text[1][6]:
+            mrz_code_dict['date_of_birth'] = mrz_lines[1][:6]
+            if self._get_check_digit(mrz_code_dict['date_of_birth']) != mrz_lines[1][6]:
                 return {'status': 'FAILURE', 'message': 'date of birth checksum is not matching'}
             mrz_code_dict['date_of_birth'] = self._format_date(mrz_code_dict['date_of_birth'])
-            mrz_code_dict['sex'] = mrz_text[1][7]
-            mrz_code_dict['date_of_expiry'] = mrz_text[1][8:14]
-            if self._get_check_digit(mrz_code_dict['date_of_expiry']) != mrz_text[1][14]:
+            mrz_code_dict['sex'] = mrz_lines[1][7]
+            mrz_code_dict['date_of_expiry'] = mrz_lines[1][8:14]
+            if self._get_check_digit(mrz_code_dict['date_of_expiry']) != mrz_lines[1][14]:
                 return {'status': 'FAILURE', 'message': 'date of expiry checksum is not matching'}
             mrz_code_dict['date_of_expiry'] = self._format_date(mrz_code_dict['date_of_expiry'])
-            mrz_code_dict['nationality'] = mrz_text[1][15:18]
-            mrz_code_dict['optional_data_2'] = mrz_text[0][18:29].strip('<')
-            if mrz_text[1][-1] != self._get_final_check_digit(mrz_text, mrz_code_dict['mrz_type']):
+            mrz_code_dict['nationality'] = mrz_lines[1][15:18]
+            mrz_code_dict['optional_data_2'] = mrz_lines[0][18:29].strip('<')
+            if mrz_lines[1][-1] != self._get_final_check_digit(mrz_lines, mrz_code_dict['mrz_type']):
                 return {'status': 'FAILURE', 'message': 'final checksum is not matching'}
 
             # Line 3
-            names = mrz_text[2].split('<<')
+            names = mrz_lines[2].split('<<')
             mrz_code_dict['surname'] = names[0].replace('<', ' ')
             mrz_code_dict['given_name'] = names[1].replace('<', ' ')
 
@@ -178,8 +186,3 @@ class Laghima:
             mrz_code_dict['status'] = 'SUCCESS'
 
         return mrz_code_dict
-
-
-
-
-
