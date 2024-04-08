@@ -6,7 +6,7 @@ with open('README.md', 'r', encoding='utf8') as f:
 
 setup(
     name='fastmrz',
-    version='0.0.1',
+    version='1.0',
     author='Sivakumar Mahalingam',
     description='Extracts the Machine Readable Zone (MRZ) data from document images',
     long_description=long_description,

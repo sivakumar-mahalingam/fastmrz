@@ -118,11 +118,10 @@ class FastMRZ:
 
         mrz_code_dict = {}
         if len(mrz_lines) == 2:
-            # add optional data field
             mrz_code_dict['mrz_type'] = 'TD2' if len(mrz_lines[0]) == 36 else 'TD3'
 
             # Line 1
-            mrz_code_dict['document_type'] = mrz_lines[0][:1]
+            mrz_code_dict['document_type'] = mrz_lines[0][:2].strip('<')
             mrz_code_dict['country_code'] = mrz_lines[0][2:5]
             names = mrz_lines[0][5:].split('<<')
             mrz_code_dict['surname'] = names[0].replace('<', ' ')
@@ -142,6 +141,10 @@ class FastMRZ:
             if self._get_check_digit(mrz_code_dict['date_of_expiry']) != mrz_lines[1][27]:
                 return {'status': 'FAILURE', 'message': 'date of expiry checksum is not matching'}
             mrz_code_dict['date_of_expiry'] = self._format_date(mrz_code_dict['date_of_expiry'])
+            if mrz_code_dict['mrz_type'] == 'TD3':
+                mrz_code_dict['optional_data'] = mrz_lines[1][28:35].strip('<')
+
+            mrz_code_dict['optional_data'] = mrz_lines[1][28:35].strip('<') if mrz_code_dict['mrz_type'] == 'TD2' else mrz_lines[1][28:42].strip('<')
             if mrz_lines[1][-1] != self._get_final_check_digit(mrz_lines[1], mrz_code_dict['mrz_type']):
                 return {'status': 'FAILURE', 'message': 'final checksum is not matching'}
 
@@ -151,7 +154,7 @@ class FastMRZ:
             mrz_code_dict['mrz_type'] = 'TD1'
 
             # Line 1
-            mrz_code_dict['document_type'] = mrz_lines[0][:2].replace('<', ' ')
+            mrz_code_dict['document_type'] = mrz_lines[0][:2].strip('<')
             mrz_code_dict['country_code'] = mrz_lines[0][2:5]
             mrz_code_dict['document_number'] = mrz_lines[0][5:14]
             if self._get_check_digit(mrz_code_dict['document_number']) != mrz_lines[0][14]:

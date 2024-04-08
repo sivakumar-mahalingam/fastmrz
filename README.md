@@ -12,14 +12,27 @@ This repository extracts the Machine Readable Zone (MRZ) from document images. T
 
 **️Features:**
 
-- Automatically detects and extracts the MRZ region from passport images.
-- Utilizes contour detection to accurately identify the MRZ area.
-- Outputs the extracted MRZ region as text for further processing or analysis.
+- Detects and extracts the MRZ region from document images
+- Contour detection to accurately identify the MRZ area
+- Custom trained models for Tensor and Tesseract 
+- Contains checksum logics for data validation
+- Outputs the extracted MRZ region as text/json for further processing or analysis
+
+
+## Built With
+
+![NumPy](https://img.shields.io/badge/numpy-%23013243.svg?style=for-the-badge&logo=numpy&logoColor=white)
+
+![Tensorflow](https://img.shields.io/badge/TensorFlow-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)
+
+![OpenCV](https://img.shields.io/badge/OpenCV-27338e?style=for-the-badge&logo=OpenCV&logoColor=white)
+
+![Tesseract OCR](https://img.shields.io/badge/Tesseract%20OCR-0F9D58?style=for-the-badge&logo=google&logoColor=white)
 
 ## Installation
 
 1. Install `fastmrz` from pip
-    ```console
+    ```Console
     $ pip install fastmrz
     
     ---> 100%
@@ -41,24 +54,37 @@ fast_mrz = FastMRZ()
 # fast_mrz = FastMRZ(tesseract_path=r'/opt/homebrew/Cellar/tesseract/5.3.4_1/bin/tesseract') # Default path in Mac
 # fast_mrz = FastMRZ(tesseract_path=r'C:\\Program Files\\Tesseract-OCR\\tesseract.exe') # Default path in Windows
 passport_mrz = fast_mrz.get_mrz(os.path.abspath('../data/passport_uk.jpg'))
+print("JSON:")
 print(json.dumps(passport_mrz, indent=4))
+
+print("\n")
+
+passport_mrz = fast_mrz.get_raw_mrz(os.path.abspath('../data/passport_uk.jpg'))
+print("TEXT:")
+print(passport_mrz)
 ```
 
 **OUTPUT:**
-```Python
+```Console
+JSON:
 {
-    "mrz_type": "TD3", 
-    "document_type": "P", 
-    "country_code": "GBR", 
-    "surname": "PUDARSAN", 
-    "given_name": "HENERT", 
-    "document_number": "707797979", 
-    "nationality": "GBR", 
-    "date_of_birth": "1995-05-20", 
-    "sex": "M", 
-    "date_of_expiry": "2017-04-22", 
+    "mrz_type": "TD3",
+    "document_type": "P",
+    "country_code": "GBR",
+    "surname": "PUDARSAN",
+    "given_name": "HENERT",
+    "document_number": "707797979",
+    "nationality": "GBR",
+    "date_of_birth": "1995-05-20",
+    "sex": "M",
+    "date_of_expiry": "2017-04-22",
     "status": "SUCCESS"
 }
+
+
+TEXT:
+P<GBRPUDARSAN<<HENERT<<<<<<<<<<<<<<<<<<<<<<<
+7077979792GBR9505209M1704224<<<<<<<<<<<<<<00
 ```
 
 ## MRZ Wiki
@@ -81,6 +107,10 @@ Now, based on the example of a national passport, let us take a closer look at t
 </details>
 
 ![MRZ GIF](https://raw.githubusercontent.com/sivakumar-mahalingam/fastmrz/main/docs/mrz.gif)
+
+## ToDo
+
+- [ ] Test for mrva and mrvb documents
 
 ## License
 

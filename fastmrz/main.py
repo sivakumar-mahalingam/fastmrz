@@ -7,5 +7,12 @@ fast_mrz = FastMRZ()
 # fast_mrz = FastMRZ(tesseract_path=r'/opt/homebrew/Cellar/tesseract/5.3.4_1/bin/tesseract') # Default path in Mac
 # fast_mrz = FastMRZ(tesseract_path=r'C:\\Program Files\\Tesseract-OCR\\tesseract.exe') # Default path in Windows
 passport_mrz = fast_mrz.get_mrz(os.path.abspath('../data/passport_uk.jpg'))
+print("JSON:")
 print(json.dumps(passport_mrz, indent=4))
+
+print("\n")
+
+passport_mrz = fast_mrz.get_raw_mrz(os.path.abspath('../data/passport_uk.jpg'))
+print("TEXT:")
+print(passport_mrz)
 
