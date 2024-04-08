@@ -16,13 +16,50 @@ This repository extracts the Machine Readable Zone (MRZ) from document images. T
 - Utilizes contour detection to accurately identify the MRZ area.
 - Outputs the extracted MRZ region as text for further processing or analysis.
 
-**How to Use:**
+## Installation
 
-- Clone the repository to your local machine.
-- Install `Tesseract OCR` engine. And set `PATH` variable with the executable.
-- Install required dependencies(mentioned in requirements.txt).
-- Replace the default Tesseract model with 'data/mrz_v2.traineddata'
+1. Install `fastmrz` from pip
+    ```console
+    $ pip install fastmrz
+    
+    ---> 100%
+    ```
 
+2. You also need to install [Tesseract OCR](https://tesseract-ocr.github.io/tessdoc/Installation.html) engine. And set `PATH` variable with the executable. 
+
+3. Replace `eng.traineddata` in `tessdata` folder with the downloaded `tessdata/mrz_v2.traineddata` file from the repo
+
+## Example
+
+```Python
+from fastmrz import FastMRZ
+import os
+import json
+
+fast_mrz = FastMRZ()
+# Pass file path of installed Tesseract OCR, incase if not added to PATH variable
+# fast_mrz = FastMRZ(tesseract_path=r'/opt/homebrew/Cellar/tesseract/5.3.4_1/bin/tesseract') # Default path in Mac
+# fast_mrz = FastMRZ(tesseract_path=r'C:\\Program Files\\Tesseract-OCR\\tesseract.exe') # Default path in Windows
+passport_mrz = fast_mrz.get_mrz(os.path.abspath('../data/passport_uk.jpg'))
+print(json.dumps(passport_mrz, indent=4))
+```
+
+**OUTPUT:**
+```Python
+{
+    "mrz_type": "TD3", 
+    "document_type": "P", 
+    "country_code": "GBR", 
+    "surname": "PUDARSAN", 
+    "given_name": "HENERT", 
+    "document_number": "707797979", 
+    "nationality": "GBR", 
+    "date_of_birth": "1995-05-20", 
+    "sex": "M", 
+    "date_of_expiry": "2017-04-22", 
+    "status": "SUCCESS"
+}
+```
 
 ## MRZ Wiki
 
