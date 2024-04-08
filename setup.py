@@ -15,7 +15,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     classifiers=[
-        "Intended Audience :: Developers"
+        "Intended Audience :: Developers",
         "License :: OSI Approved :: GNU Affero General Public License v3",
         "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
         "Programming Language :: Python :: 3.8",
