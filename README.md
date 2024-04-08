@@ -21,13 +21,10 @@ This repository extracts the Machine Readable Zone (MRZ) from document images. T
 
 ## Built With
 
-![NumPy](https://img.shields.io/badge/numpy-%23013243.svg?style=for-the-badge&logo=numpy&logoColor=white)
-
 ![Tensorflow](https://img.shields.io/badge/TensorFlow-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)
-
 ![OpenCV](https://img.shields.io/badge/OpenCV-27338e?style=for-the-badge&logo=OpenCV&logoColor=white)
-
 ![Tesseract OCR](https://img.shields.io/badge/Tesseract%20OCR-0F9D58?style=for-the-badge&logo=google&logoColor=white)
+![NumPy](https://img.shields.io/badge/numpy-316192?style=for-the-badge&logo=numpy&logoColor=white)
 
 ## Installation
 
@@ -110,7 +107,8 @@ Now, based on the example of a national passport, let us take a closer look at t
 
 ## ToDo
 
-- [ ] Test for mrva and mrvb documents
+- [ ] Test for **mrva** and **mrvb** documents
+- [ ] Add `wiki` page
 
 ## License
 
