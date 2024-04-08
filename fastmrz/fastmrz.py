@@ -5,14 +5,10 @@ import pytesseract
 from datetime import datetime
 import os
 
-# Set the Tesseract path
-# pytesseract.pytesseract.tesseract_cmd = r'/opt/homebrew/Cellar/tesseract/5.3.4_1/bin/tesseract'
-# pytesseract.pytesseract.tesseract_cmd = 'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
-
 
 class FastMRZ:
     def __init__(self, tesseract_path=''):
-        self.interpreter = tensorflow.lite.Interpreter(model_path=os.path.abspath('../models/mrz_seg.tflite'))
+        self.interpreter = tensorflow.lite.Interpreter(model_path=os.path.join(os.path.dirname(__file__),'model/mrz_seg.tflite'))
         self.interpreter.allocate_tensors()
         self.input_details = self.interpreter.get_input_details()
         self.output_details = self.interpreter.get_output_details()
@@ -101,7 +97,7 @@ class FastMRZ:
         formatted_date = str(datetime.strptime(input_date, '%y%m%d').date())
         return formatted_date
 
-    def read_raw_mrz(self, image_path):
+    def get_raw_mrz(self, image_path):
         image_array = self._process_image(image_path)
         self.interpreter.set_tensor(self.input_details[0]['index'], image_array)
         self.interpreter.invoke()
@@ -111,8 +107,8 @@ class FastMRZ:
 
         return cleansed_roi
 
-    def read_mrz(self, image_path):
-        mrz_text = self.read_raw_mrz(image_path)
+    def get_mrz(self, image_path):
+        mrz_text = self.get_raw_mrz(image_path)
         return self._parse_mrz(mrz_text)
 
     def _parse_mrz(self, mrz_text):

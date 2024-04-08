@@ -53,13 +53,13 @@ def test_format_date():
 # Test cases for read_raw_mrz function
 def test_read_raw_mrz():
     image_path = os.path.abspath('../data/td2.jpg')
-    raw_mrz = fast_mrz.read_raw_mrz(image_path)
+    raw_mrz = fast_mrz.get_raw_mrz(image_path)
     assert isinstance(raw_mrz, str)
 
 
 # Test cases for read_mrz function
 def test_read_mrz():
     image_path = os.path.abspath('../data/td3.jpg')
-    mrz_data = fast_mrz.read_mrz(image_path)
+    mrz_data = fast_mrz.get_mrz(image_path)
     assert isinstance(mrz_data, dict)
     assert 'status' in mrz_data.keys()
