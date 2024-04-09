@@ -3,6 +3,7 @@
 ![License](https://img.shields.io/badge/license-AGPL%203.0-green)
 ![Python](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11-blue?logo=python)
 [![CodeQL](https://github.com/sivakumar-mahalingam/fastmrz/actions/workflows/codeql.yml/badge.svg)](https://github.com/sivakumar-mahalingam/fastmrz/actions/workflows/codeql.yml)
+[![PyPI](https://img.shields.io/pypi/v/fastmrz.svg)](https://pypi.org/project/fastmrz/)
 
 <a href="https://github.com/sivakumar-mahalingam/fastmrz/" target="_blank">
     <img src="https://raw.githubusercontent.com/sivakumar-mahalingam/fastmrz/main/docs/FastMRZ.png" target="_blank" />
