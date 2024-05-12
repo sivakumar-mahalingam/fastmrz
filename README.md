@@ -38,7 +38,7 @@ This repository extracts the Machine Readable Zone (MRZ) from document images. T
 
 2. You also need to install [Tesseract OCR](https://tesseract-ocr.github.io/tessdoc/Installation.html) engine. And set `PATH` variable with the executable. 
 
-3. Replace `eng.traineddata` in `tessdata` folder with the downloaded `tessdata/mrz_v2.traineddata` file from the repo
+3. Copy `mrz.traineddata` in `tessdata` folder of [repo](https://github.com/sivakumar-mahalingam/fastmrz/raw/main/tessdata/mrz.traineddata) to the tessdata folder in installed tesseract location
 
 ## Example
 
