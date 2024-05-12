@@ -48,7 +48,7 @@ class FastMRZ:
 
         x, y, w, h = cv2.boundingRect(contours[np.argmax(c_area)])
         roi_arr = image[y:y + h, x:x + w].copy()
-        roi = pytesseract.image_to_string(roi_arr)
+        roi = pytesseract.image_to_string(roi_arr, lang='mrz')
 
         return roi
 
@@ -97,19 +97,36 @@ class FastMRZ:
         formatted_date = str(datetime.strptime(input_date, '%y%m%d').date())
         return formatted_date
 
-    def get_raw_mrz(self, image_path):
-        image_array = self._process_image(image_path)
-        self.interpreter.set_tensor(self.input_details[0]['index'], image_array)
-        self.interpreter.invoke()
-        output_data = self.interpreter.get_tensor(self.output_details[0]['index'])
-        raw_roi = self._get_roi(output_data, image_path)
-        cleansed_roi = self._cleanse_roi(raw_roi)
+    def _is_valid_file(self, image_path):
+        if isinstance(image_path, str):
+            if not os.path.isfile(image_path):
+                return f"Input file {image_path} is not valid or accessed"
+            else:
+                return image_path
+        elif not isinstance(image_path, np.ndarray):
+            return "Input is not vectorized"
 
-        return cleansed_roi
+    def get_raw_mrz(self, image_path):
+        file_status = self._is_valid_file(image_path)
+        if image_path == file_status:
+            image_array = self._process_image(image_path)
+            self.interpreter.set_tensor(self.input_details[0]['index'], image_array)
+            self.interpreter.invoke()
+            output_data = self.interpreter.get_tensor(self.output_details[0]['index'])
+            raw_roi = self._get_roi(output_data, image_path)
+            cleansed_roi = self._cleanse_roi(raw_roi)
+
+            return cleansed_roi
+        else:
+            return file_status
 
     def get_mrz(self, image_path):
-        mrz_text = self.get_raw_mrz(image_path)
-        return self._parse_mrz(mrz_text)
+        file_status = self._is_valid_file(image_path)
+        if image_path == file_status:
+            mrz_text = self.get_raw_mrz(image_path)
+            return self._parse_mrz(mrz_text)
+        else:
+            return {'status': 'FAILURE', 'message': file_status}
 
     def _parse_mrz(self, mrz_text):
         mrz_lines = mrz_text.strip().split('\n')
