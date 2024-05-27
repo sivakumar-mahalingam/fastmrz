@@ -61,11 +61,12 @@ class FastMRZ:
                 selection_length = len(item)
                 break
 
-        new_list = [item for item in input_list if len(item) >= selection_length]
-
-        output_text = '\n'.join(new_list)
-
-        return output_text
+        if selection_length is None:
+            return ''
+        else:
+            new_list = [item for item in input_list if len(item) >= selection_length]
+            output_text = '\n'.join(new_list)
+            return output_text
 
     def _get_final_check_digit(self, input_string, input_type):
         if input_type == 'TD3':
@@ -128,6 +129,16 @@ class FastMRZ:
         else:
             return {'status': 'FAILURE', 'message': file_status}
 
+    def _get_date_of_birth(self, date_of_birth_str, date_of_expiry_str):
+        birth_year = int(date_of_birth_str[:4])
+        expiry_year = int(date_of_expiry_str[:4])
+
+        if expiry_year <= birth_year:
+            adjusted_year = birth_year - 100
+            return f"{adjusted_year}-{date_of_birth_str[5:]}"
+        else:
+            return date_of_birth_str
+
     def _parse_mrz(self, mrz_text):
         mrz_lines = mrz_text.strip().split('\n')
         if len(mrz_lines) not in [2, 3]:
@@ -140,6 +151,8 @@ class FastMRZ:
             # Line 1
             mrz_code_dict['document_type'] = mrz_lines[0][:2].strip('<')
             mrz_code_dict['country_code'] = mrz_lines[0][2:5]
+            if not mrz_code_dict['country_code'].isalpha():
+                return {'status': 'FAILURE', 'message': 'Invalid MRZ format'}
             names = mrz_lines[0][5:].split('<<')
             mrz_code_dict['surname'] = names[0].replace('<', ' ')
             mrz_code_dict['given_name'] = names[1].replace('<', ' ')
@@ -149,6 +162,8 @@ class FastMRZ:
             if self._get_check_digit(mrz_code_dict['document_number']) != mrz_lines[1][9]:
                 return {'status': 'FAILURE', 'message': 'document number checksum is not matching'}
             mrz_code_dict['nationality'] = mrz_lines[1][10:13]
+            if not mrz_code_dict['nationality'].isalpha():
+                return {'status': 'FAILURE', 'message': 'Invalid MRZ format'}
             mrz_code_dict['date_of_birth'] = mrz_lines[1][13:19]
             if self._get_check_digit(mrz_code_dict['date_of_birth']) != mrz_lines[1][19]:
                 return {'status': 'FAILURE', 'message': 'date of birth checksum is not matching'}
@@ -158,6 +173,8 @@ class FastMRZ:
             if self._get_check_digit(mrz_code_dict['date_of_expiry']) != mrz_lines[1][27]:
                 return {'status': 'FAILURE', 'message': 'date of expiry checksum is not matching'}
             mrz_code_dict['date_of_expiry'] = self._format_date(mrz_code_dict['date_of_expiry'])
+            mrz_code_dict['date_of_birth'] = self._get_date_of_birth(mrz_code_dict['date_of_birth'],
+                                                                     mrz_code_dict['date_of_expiry'])
             if mrz_code_dict['mrz_type'] == 'TD3':
                 mrz_code_dict['optional_data'] = mrz_lines[1][28:35].strip('<')
 
@@ -173,6 +190,8 @@ class FastMRZ:
             # Line 1
             mrz_code_dict['document_type'] = mrz_lines[0][:2].strip('<')
             mrz_code_dict['country_code'] = mrz_lines[0][2:5]
+            if not mrz_code_dict['country_code'].isalpha():
+                return {'status': 'FAILURE', 'message': 'Invalid MRZ format'}
             mrz_code_dict['document_number'] = mrz_lines[0][5:14]
             if self._get_check_digit(mrz_code_dict['document_number']) != mrz_lines[0][14]:
                 return {'status': 'FAILURE', 'message': 'document number checksum is not matching'}
@@ -188,7 +207,11 @@ class FastMRZ:
             if self._get_check_digit(mrz_code_dict['date_of_expiry']) != mrz_lines[1][14]:
                 return {'status': 'FAILURE', 'message': 'date of expiry checksum is not matching'}
             mrz_code_dict['date_of_expiry'] = self._format_date(mrz_code_dict['date_of_expiry'])
+            mrz_code_dict['date_of_birth'] = self._get_date_of_birth(mrz_code_dict['date_of_birth'],
+                                                                     mrz_code_dict['date_of_expiry'])
             mrz_code_dict['nationality'] = mrz_lines[1][15:18]
+            if not mrz_code_dict['nationality'].isalpha():
+                return {'status': 'FAILURE', 'message': 'Invalid MRZ format'}
             mrz_code_dict['optional_data_2'] = mrz_lines[0][18:29].strip('<')
             if mrz_lines[1][-1] != self._get_final_check_digit(mrz_lines, mrz_code_dict['mrz_type']):
                 return {'status': 'FAILURE', 'message': 'final checksum is not matching'}
