@@ -7,7 +7,7 @@ fast_mrz = FastMRZ()
 
 # Test cases for _process_image function
 def test_process_image():
-    image_path = os.path.abspath('../data/td3.jpg')
+    image_path = os.path.abspath("data/td3.jpg")
     processed_image = fast_mrz._process_image(image_path)
     assert isinstance(processed_image, np.ndarray)
     assert processed_image.shape == (1, 256, 256, 3)
@@ -16,7 +16,7 @@ def test_process_image():
 # Test cases for _get_roi function
 def test_get_roi():
     output_data = np.random.rand(1, 256, 256, 1)
-    image_path = os.path.abspath('../data/td3.jpg')
+    image_path = os.path.abspath("data/td3.jpg")
     roi = fast_mrz._get_roi(output_data, image_path)
     assert isinstance(roi, str)
 
@@ -30,7 +30,9 @@ def test_cleanse_roi():
 
 # Test cases for _get_final_check_digit function
 def test_get_final_check_digit():
-    input_string = "'I<UTOERIKSSON<<ANNA<MARIA<<<<<<<<<<<\nD231458907UTO7408122F1204159<<<<<<<6"
+    input_string = (
+        "'I<UTOERIKSSON<<ANNA<MARIA<<<<<<<<<<<\nD231458907UTO7408122F1204159<<<<<<<6"
+    )
     input_type = "TD2"
     final_check_digit = fast_mrz._get_final_check_digit(input_string, input_type)
     assert isinstance(final_check_digit, str)
@@ -52,14 +54,14 @@ def test_format_date():
 
 # Test cases for read_raw_mrz function
 def test_read_raw_mrz():
-    image_path = os.path.abspath('../data/td2.jpg')
+    image_path = os.path.abspath("data/td2.jpg")
     raw_mrz = fast_mrz.get_raw_mrz(image_path)
     assert isinstance(raw_mrz, str)
 
 
 # Test cases for read_mrz function
 def test_read_mrz():
-    image_path = os.path.abspath('../data/td3.jpg')
+    image_path = os.path.abspath("data/td3.jpg")
     mrz_data = fast_mrz.get_mrz(image_path)
     assert isinstance(mrz_data, dict)
-    assert 'status' in mrz_data.keys()
+    assert "status" in mrz_data.keys()
