@@ -10,7 +10,7 @@ class FastMRZ:
     def __init__(self, tesseract_path=""):
         self.tesseract_path = tesseract_path
         self.net = cv2.dnn.readNetFromONNX(
-            os.path.join(os.path.dirname(__file__), "fastmrz/model/mrz_seg.onnx")
+            os.path.join(os.path.dirname(__file__), "model/mrz_seg.onnx")
         )
 
     def _process_image(self, image_path):
