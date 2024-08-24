@@ -47,9 +47,8 @@ class FastMRZ:
         contours, hierarchy = cv2.findContours(
             altered_image.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
         )
-
         if len(contours) == 0:
-            return None
+            return ""
 
         c_area = np.zeros([len(contours)])
         for j in range(len(contours)):
@@ -142,6 +141,8 @@ class FastMRZ:
         return f"{adjusted_year}-{date_of_birth_str[5:]}"
 
     def _parse_mrz(self, mrz_text):
+        if not mrz_text:
+            return {"status": "FAILURE", "message": "No MRZ detected"}
         mrz_lines = mrz_text.strip().split("\n")
         if len(mrz_lines) not in [2, 3]:
             return {"status": "FAILURE", "message": "Invalid MRZ format"}
