@@ -31,16 +31,16 @@ This repository extracts the Machine Readable Zone (MRZ) from document images. T
 
 1. Install [Tesseract OCR](https://tesseract-ocr.github.io/tessdoc/Installation.html) engine. And set `PATH` variable with the executable. 
 
-    * This can be done through conda too if you prefer.
-        ```bash
-        conda create -n fastmrz tesseract -c conda-forge
-        conda activate fastmrz
-        ```
-
-2. Install `fastmrz` from pip
+2. Install `fastmrz`
     ```bash
     pip install fastmrz
     ```
+   This can be done through conda too if you prefer.
+
+     ```bash
+     conda create -n fastmrz tesseract -c conda-forge
+     conda activate fastmrz
+     ```
 
 3. Copy `mrz.traineddata` in `tessdata` folder of [repo](https://github.com/sivakumar-mahalingam/fastmrz/raw/main/tessdata/mrz.traineddata) to the tessdata folder in installed tesseract location
 
@@ -48,20 +48,19 @@ This repository extracts the Machine Readable Zone (MRZ) from document images. T
 
 ```Python
 from fastmrz import FastMRZ
-import os
 import json
 
 fast_mrz = FastMRZ()
 # Pass file path of installed Tesseract OCR, incase if not added to PATH variable
 # fast_mrz = FastMRZ(tesseract_path=r'/opt/homebrew/Cellar/tesseract/5.3.4_1/bin/tesseract') # Default path in Mac
 # fast_mrz = FastMRZ(tesseract_path=r'C:\\Program Files\\Tesseract-OCR\\tesseract.exe') # Default path in Windows
-passport_mrz = fast_mrz.get_mrz("data/passport_uk.jpg")
+passport_mrz = fast_mrz.get_mrz("../data/passport_uk.jpg")
 print("JSON:")
 print(json.dumps(passport_mrz, indent=4))
 
 print("\n")
 
-passport_mrz = fast_mrz.get_mrz("data/passport_uk.jpg", raw=True)
+passport_mrz = fast_mrz.get_mrz("../data/passport_uk.jpg", raw=True)
 print("TEXT:")
 print(passport_mrz)
 ```
