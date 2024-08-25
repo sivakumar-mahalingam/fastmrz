@@ -5,17 +5,17 @@ from fastmrz import FastMRZ
 
 fast_mrz = FastMRZ()
 
-class TestFastMRZMethods(unittest.TestCase):
 
+class TestFastMRZMethods(unittest.TestCase):
     def test_process_image(self):
-        image_path = os.path.abspath("data/td3.jpg")
+        image_path = os.path.abspath("../data/td3.jpg")
         processed_image = fast_mrz._process_image(image_path)
         self.assertIsInstance(processed_image, np.ndarray)
         self.assertEqual(processed_image.shape, (1, 256, 256, 3))
 
     def test_get_roi(self):
         output_data = np.random.rand(1, 256, 256, 1)
-        image_path = os.path.abspath("data/td3.jpg")
+        image_path = os.path.abspath("../data/td3.jpg")
         roi = fast_mrz._get_roi(output_data, image_path)
         self.assertIsInstance(roi, str)
 
@@ -43,21 +43,22 @@ class TestFastMRZMethods(unittest.TestCase):
         self.assertIsInstance(formatted_date, str)
 
     def test_read_raw_mrz(self):
-        image_path = os.path.abspath("data/td2.jpg")
+        image_path = os.path.abspath("../data/td2.jpg")
         raw_mrz = fast_mrz.get_mrz(image_path, raw=True)
         self.assertIsInstance(raw_mrz, str)
 
     def test_read_mrz(self):
-        image_path = os.path.abspath("data/td3.jpg")
+        image_path = os.path.abspath("../data/td3.jpg")
         mrz_data = fast_mrz.get_mrz(image_path)
         self.assertIsInstance(mrz_data, dict)
         self.assertIn("status", mrz_data.keys())
 
     def test_read_mrz_nomrz(self):
-        image_path = os.path.abspath("data/nomrz.jpg")
+        image_path = os.path.abspath("../data/nomrz.jpg")
         mrz_data = fast_mrz.get_mrz(image_path)
         self.assertIsInstance(mrz_data, dict)
         self.assertIn("status", mrz_data.keys())
+
 
 if __name__ == "__main__":
     unittest.main()
