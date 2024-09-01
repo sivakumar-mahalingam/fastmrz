@@ -1,6 +1,7 @@
 # Fast MRZ
 
 ![License](https://img.shields.io/badge/license-AGPL%203.0-green)
+![Downloads](https://static.pepy.tech/badge/fastmrz)
 ![Python](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue?logo=python)
 [![CodeQL](https://github.com/sivakumar-mahalingam/fastmrz/actions/workflows/codeql.yml/badge.svg)](https://github.com/sivakumar-mahalingam/fastmrz/actions/workflows/codeql.yml)
 [![PyPI](https://img.shields.io/pypi/v/fastmrz.svg)](https://pypi.org/project/fastmrz/)
