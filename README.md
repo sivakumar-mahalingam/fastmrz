@@ -26,6 +26,7 @@ This repository extracts the Machine Readable Zone (MRZ) from document images. T
 ![OpenCV](https://img.shields.io/badge/OpenCV-27338e?style=for-the-badge&logo=OpenCV&logoColor=white)
 ![Tesseract OCR](https://img.shields.io/badge/Tesseract%20OCR-0F9D58?style=for-the-badge&logo=google&logoColor=white)
 ![NumPy](https://img.shields.io/badge/numpy-316192?style=for-the-badge&logo=numpy&logoColor=white)
+![ONNX](https://img.shields.io/badge/ONNX-7B7B7B?style=for-the-badge&logo=onnx&logoColor=white)
 
 ## Installation
 
