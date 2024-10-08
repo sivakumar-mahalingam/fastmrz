@@ -12,6 +12,8 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/sivakumar-mahalingam/fastmrz",
+    homepage="https://pypi.org/project/fastmrz",
+    license="AGPLv3",
     packages=find_packages(),
     include_package_data=True,
     classifiers=[
@@ -33,6 +35,9 @@ setup(
         "Topic :: Scientific/Engineering :: Image Recognition",
         "Topic :: Scientific/Engineering :: Information Analysis",
         "Topic :: Software Development",
+    ],
+    keywords=[
+        "fastmrz", "mrz"
     ],
     install_requires=[
         "opencv-python>=4.9.0.80",
