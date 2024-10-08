@@ -37,7 +37,7 @@ setup(
         "Topic :: Software Development",
     ],
     keywords=[
-        "fastmrz", "mrz"
+        "fastmrz", "mrz", "image processing", "image recognition", "ocr", "computer vision", "text recognition", "text detection", "artificial intelligence", "onnx"
     ],
     install_requires=[
         "opencv-python>=4.9.0.80",
