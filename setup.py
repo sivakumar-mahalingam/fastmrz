@@ -14,6 +14,10 @@ setup(
     url="https://github.com/sivakumar-mahalingam/fastmrz",
     homepage="https://pypi.org/project/fastmrz",
     license="AGPLv3",
+    python_requires=">=3.8",
+    install_requires=[
+        "opencv-python>=4.9.0.80", "pytesseract>=0.3.10",
+    ],
     packages=find_packages(),
     include_package_data=True,
     classifiers=[
@@ -38,10 +42,5 @@ setup(
     ],
     keywords=[
         "fastmrz", "mrz", "image processing", "image recognition", "ocr", "computer vision", "text recognition", "text detection", "artificial intelligence", "onnx"
-    ],
-    install_requires=[
-        "opencv-python>=4.9.0.80",
-        "pytesseract>=0.3.10",
-    ],
-    python_requires=">=3.8",
+    ]
 )
