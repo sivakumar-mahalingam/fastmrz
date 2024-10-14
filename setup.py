@@ -11,7 +11,7 @@ setup(
     description="Extracts the Machine Readable Zone (MRZ) data from document images",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://pypi.org/project/fastmrz",
+    url="https://github.com/sivakumar-mahalingam/fastmrz/",
     project_urls={
         'Source': 'https://github.com/sivakumar-mahalingam/fastmrz',
         'Tracker': 'https://github.com/sivakumar-mahalingam/fastmrz/issues',
