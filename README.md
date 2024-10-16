@@ -114,7 +114,9 @@ Now, based on the example of a national passport, let us take a closer look at t
 ## ToDo
 
 - [ ] Test for **mrva** and **mrvb** documents
-- [ ] Add `wiki` page
+- [x] Add `wiki` page
+- [ ] Send numpy array as input
+- [ ] Bulk process
 
 ## License
 
