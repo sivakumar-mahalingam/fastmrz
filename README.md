@@ -117,6 +117,7 @@ Now, based on the example of a national passport, let us take a closer look at t
 - [x] Add `wiki` page
 - [ ] Send numpy array as input
 - [ ] Bulk process
+- [ ] Train Tesseract model with additional data
 
 ## License
 
