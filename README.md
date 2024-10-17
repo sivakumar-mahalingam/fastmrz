@@ -46,7 +46,7 @@ This repository extracts the Machine Readable Zone (MRZ) from document images. T
 
 3. Copy `mrz.traineddata` in `tessdata` folder of [repo](https://github.com/sivakumar-mahalingam/fastmrz/raw/main/tessdata/mrz.traineddata) to the tessdata folder in installed tesseract location
 
-## Example
+## 💡Example
 
 ```Python
 from fastmrz import FastMRZ
