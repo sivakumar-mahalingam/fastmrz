@@ -21,14 +21,14 @@ This repository extracts the Machine Readable Zone (MRZ) from document images. T
 - Outputs the extracted MRZ region as text/json for further processing or analysis
 
 
-## Built With
+## 🛠️Built With
 
 ![OpenCV](https://img.shields.io/badge/OpenCV-27338e?style=for-the-badge&logo=OpenCV&logoColor=white)
 ![Tesseract OCR](https://img.shields.io/badge/Tesseract%20OCR-0F9D58?style=for-the-badge&logo=google&logoColor=white)
 ![NumPy](https://img.shields.io/badge/numpy-316192?style=for-the-badge&logo=numpy&logoColor=white)
 ![ONNX](https://img.shields.io/badge/ONNX-7B7B7B?style=for-the-badge&logo=onnx&logoColor=white)
 
-## Installation
+## ⚙️Installation
 
 
 1. Install [Tesseract OCR](https://tesseract-ocr.github.io/tessdoc/Installation.html) engine. And set `PATH` variable with the executable. 
@@ -90,7 +90,7 @@ P<GBRPUDARSAN<<HENERT<<<<<<<<<<<<<<<<<<<<<<<
 7077979792GBR9505209M1704224<<<<<<<<<<<<<<00
 ```
 
-## MRZ Wiki
+## 📃MRZ Wiki
 
 <details>
     <summary><b>MRZ Types & Format</b></summary>
@@ -111,7 +111,7 @@ Now, based on the example of a national passport, let us take a closer look at t
 
 ![MRZ GIF](https://raw.githubusercontent.com/sivakumar-mahalingam/fastmrz/main/docs/mrz.gif)
 
-## ToDo
+## 🗹ToDo
 
 - [ ] Test for **mrva** and **mrvb** documents
 - [x] Add `wiki` page
@@ -119,11 +119,11 @@ Now, based on the example of a national passport, let us take a closer look at t
 - [ ] Bulk process
 - [ ] Train Tesseract model with additional data
 
-## License
+## ⚖️License
 
 Distributed under the AGPL-3.0 License. See `LICENSE` for more information.
 
-## Show your support
+## ⭐Show your support
 
 Give a ⭐️ if <a href="https://github.com/sivakumar-mahalingam/fastmrz/">this</a> project helped you!
 
