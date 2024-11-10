@@ -16,7 +16,7 @@ This repository extracts the Machine Readable Zone (MRZ) from document images. T
 
 - Detects and extracts the MRZ region from document images
 - Contour detection to accurately identify the MRZ area
-- Custom trained models for ONNX and Tesseract 
+- Custom trained models using ONNX 
 - Contains checksum logics for data validation
 - Outputs the extracted MRZ region as text/json for further processing or analysis
 
