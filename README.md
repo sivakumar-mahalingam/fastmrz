@@ -116,6 +116,8 @@ Now, based on the example of a national passport, let us take a closer look at t
 - [ ] Test for **mrva** and **mrvb** documents
 - [x] Add `wiki` page
 - [ ] Send numpy array as input
+- [ ] Send mrz text as input
+- [ ] Function to return mrz text as output
 - [ ] Bulk process
 - [ ] Train Tesseract model with additional data
 
