@@ -116,10 +116,10 @@ Now, based on the example of a national passport, let us take a closer look at t
 
 ## 🗹ToDo
 
-- [ ] Test for **mrva** and **mrvb** documents
+- [x] Test for **mrva** and **mrvb** documents
 - [x] Add `wiki` page
 - [ ] Support numpy array as input
-- [ ] Support mrz text as input
+- [x] Support mrz text as input
 - [ ] Support base64 as input
 - [x] Function to return mrz text as output
 - [ ] Bulk process
