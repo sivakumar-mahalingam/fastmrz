@@ -1,7 +1,7 @@
 from fastmrz import FastMRZ
 import json
 
-fast_mrz = FastMRZ(tesseract_path="C:\\Program Files\\Tesseract-OCR\\tesseract.exe")
+fast_mrz = FastMRZ()
 # Pass file path of installed Tesseract OCR, incase if not added to PATH variable
 # fast_mrz = FastMRZ(tesseract_path=r'/path/to/tesseract/source')
 passport_mrz = fast_mrz.get_details("../data/passport_uk.jpg")

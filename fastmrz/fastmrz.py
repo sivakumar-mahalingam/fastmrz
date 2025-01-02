@@ -6,7 +6,6 @@ import os
 
 
 class FastMRZ:
-
     def __init__(self, tesseract_path=""):
         self.tesseract_path = tesseract_path
         self.net = cv2.dnn.readNetFromONNX(

@@ -56,13 +56,13 @@ fast_mrz = FastMRZ()
 # Pass file path of installed Tesseract OCR, incase if not added to PATH variable
 # fast_mrz = FastMRZ(tesseract_path=r'/opt/homebrew/Cellar/tesseract/5.3.4_1/bin/tesseract') # Default path in Mac
 # fast_mrz = FastMRZ(tesseract_path=r'C:\\Program Files\\Tesseract-OCR\\tesseract.exe') # Default path in Windows
-passport_mrz = fast_mrz.get_mrz("../data/passport_uk.jpg")
+passport_mrz = fast_mrz.get_details("../data/passport_uk.jpg")
 print("JSON:")
 print(json.dumps(passport_mrz, indent=4))
 
 print("\n")
 
-passport_mrz = fast_mrz.get_mrz("../data/passport_uk.jpg", raw=True)
+passport_mrz = fast_mrz.get_details("../data/passport_uk.jpg", ignore_parse=True)
 print("TEXT:")
 print(passport_mrz)
 ```
@@ -72,15 +72,18 @@ print(passport_mrz)
 JSON:
 {
     "mrz_type": "TD3",
-    "document_type": "P",
-    "country_code": "GBR",
+    "document_code": "P",
+    "issuer_code": "GBR",
     "surname": "PUDARSAN",
     "given_name": "HENERT",
     "document_number": "707797979",
-    "nationality": "GBR",
-    "date_of_birth": "1995-05-20",
+    "document_number_checkdigit": "2",
+    "nationality_code": "GBR",
+    "birth_date": "1995-05-20",
     "sex": "M",
-    "date_of_expiry": "2017-04-22",
+    "expiry_date": "2017-04-22",
+    "optional_data": "",
+    "mrz_text": "P<GBRPUDARSAN<<HENERT<<<<<<<<<<<<<<<<<<<<<<<\n7077979792GBR9505209M1704224<<<<<<<<<<<<<<00",
     "status": "SUCCESS"
 }
 
