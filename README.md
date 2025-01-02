@@ -115,11 +115,14 @@ Now, based on the example of a national passport, let us take a closer look at t
 
 - [ ] Test for **mrva** and **mrvb** documents
 - [x] Add `wiki` page
-- [ ] Send numpy array as input
-- [ ] Send mrz text as input
+- [ ] Support numpy array as input
+- [ ] Support mrz text as input
 - [x] Function to return mrz text as output
 - [ ] Bulk process
 - [ ] Train Tesseract model with additional data
+- [ ] Add function parameter - is_checkdigit
+- [ ] Add function - get_mrz_image
+- [ ] Support pdf as input
 
 ## ⚖️License
 
