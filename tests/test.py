@@ -42,18 +42,30 @@ class TestFastMRZMethods(unittest.TestCase):
 
     def test_read_raw_mrz(self):
         image_path = os.path.abspath("../data/td2.jpg")
-        raw_mrz = fast_mrz.get_mrz(image_path, raw=True)
+        raw_mrz = fast_mrz.get_details(image_path, ignore_parse=True)
         self.assertIsInstance(raw_mrz, str)
 
     def test_read_mrz(self):
         image_path = os.path.abspath("../data/td3.jpg")
-        mrz_data = fast_mrz.get_mrz(image_path)
+        mrz_data = fast_mrz.get_details(image_path)
         self.assertIsInstance(mrz_data, dict)
         self.assertIn("status", mrz_data.keys())
 
     def test_read_mrz_nomrz(self):
         image_path = os.path.abspath("../data/nomrz.jpg")
-        mrz_data = fast_mrz.get_mrz(image_path)
+        mrz_data = fast_mrz.get_details(image_path)
+        self.assertIsInstance(mrz_data, dict)
+        self.assertIn("status", mrz_data.keys())
+
+    def test_read_mrz_mrva(self):
+        image_path = os.path.abspath("../data/mrva.jpg")
+        mrz_data = fast_mrz.get_details(image_path)
+        self.assertIsInstance(mrz_data, dict)
+        self.assertIn("status", mrz_data.keys())
+
+    def test_read_mrz_mrvb(self):
+        image_path = os.path.abspath("../data/mrvb.jpg")
+        mrz_data = fast_mrz.get_details(image_path)
         self.assertIsInstance(mrz_data, dict)
         self.assertIn("status", mrz_data.keys())
 
