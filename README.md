@@ -116,17 +116,20 @@ Now, based on the example of a national passport, let us take a closer look at t
 
 ## 🗹ToDo
 
-- [x] Test for **mrva** and **mrvb** documents
-- [x] Add `wiki` page
+- [x] Include mrva and mrvb documents
+- [x] Add wiki page
 - [ ] Support numpy array as input
 - [x] Support mrz text as input
-- [ ] Support base64 as input
+- [x] Support base64 as input
+- [ ] Support pdf as input
 - [x] Function to return mrz text as output
 - [ ] Bulk process
 - [ ] Train Tesseract model with additional data
-- [ ] Add function parameter - is_checkdigit
+- [ ] Add function parameter - include_checkdigit
 - [ ] Add function - get_mrz_image
-- [ ] Support pdf as input
+- [x] Add function - validate_mrz
+- [ ] Add function - generate_mrz
+- [ ] Extract face image
 
 ## ⚖️License
 

@@ -1,9 +1,11 @@
 import numpy as np
 import cv2
 import pytesseract
-from datetime import datetime
 import os
-
+import base64
+from datetime import datetime
+from io import BytesIO
+from PIL import Image
 
 class FastMRZ:
     def __init__(self, tesseract_path=""):
@@ -89,6 +91,16 @@ class FastMRZ:
 
         return formatted_date
 
+    def _get_birth_date(self, birth_date_str, expiry_date_str):
+        birth_year = int(birth_date_str[:4])
+        expiry_year = int(expiry_date_str[:4])
+
+        if expiry_year > birth_year:
+            return birth_date_str
+        adjusted_year = birth_year - 100
+
+        return f"{adjusted_year}-{birth_date_str[5:]}"
+
     def _is_valid(self, image):
         if isinstance(image, str):
             return bool(os.path.isfile(image))
@@ -103,22 +115,20 @@ class FastMRZ:
 
         return self._cleanse_roi(mrz_roi)
 
-    def get_details(self, image, ignore_parse=False):
+    def _base64_to_image_array(self, base64_string):
+        image_data = base64.b64decode(base64_string)
+        image_stream = BytesIO(image_data)
+        image = Image.open(image_stream)
+        image_array = np.array(image)
+
+        return image_array
+
+    def get_details_old(self, image, ignore_parse=False, include_checkdigit=True):
         if not self._is_valid(image):
             return {"status": "FAILURE", "message": "Invalid input image"}
         mrz_text = self._get_mrz(image)
 
         return mrz_text if ignore_parse else self._parse_mrz(mrz_text)
-
-    def _get_birth_date(self, birth_date_str, expiry_date_str):
-        birth_year = int(birth_date_str[:4])
-        expiry_year = int(expiry_date_str[:4])
-
-        if expiry_year > birth_year:
-            return birth_date_str
-        adjusted_year = birth_year - 100
-
-        return f"{adjusted_year}-{birth_date_str[5:]}"
 
     def _parse_mrz(self, mrz_text):
         if not mrz_text:
@@ -149,7 +159,7 @@ class FastMRZ:
             mrz_code_dict["document_number"] = mrz_lines[1][:9].replace("<", "")
             mrz_code_dict["document_number_checkdigit"] = self._get_check_digit(mrz_code_dict["document_number"])
             if mrz_code_dict["document_number_checkdigit"] != mrz_lines[1][9]:
-                return {"status": "FAILURE", "message": "document number checksum is not matching"}
+                return {"status": "FAILURE", "message": "Document number checksum is not matching"}
 
             mrz_code_dict["nationality_code"] = mrz_lines[1][10:13]
             if not mrz_code_dict["nationality_code"].isalpha():
@@ -157,14 +167,14 @@ class FastMRZ:
 
             mrz_code_dict["birth_date"] = mrz_lines[1][13:19]
             if self._get_check_digit(mrz_code_dict["birth_date"]) != mrz_lines[1][19]:
-                return {"status": "FAILURE", "message": "date of birth checksum is not matching"}
+                return {"status": "FAILURE", "message": "Date of birth checksum is not matching"}
             mrz_code_dict["birth_date"] = self._format_date(mrz_code_dict["birth_date"])
 
             mrz_code_dict["sex"] = mrz_lines[1][20]
 
             mrz_code_dict["expiry_date"] = mrz_lines[1][21:27]
             if self._get_check_digit(mrz_code_dict["expiry_date"]) != mrz_lines[1][27]:
-                return {"status": "FAILURE", "message": "date of expiry checksum is not matching"}
+                return {"status": "FAILURE", "message": "Date of expiry checksum is not matching"}
             mrz_code_dict["expiry_date"] = self._format_date(mrz_code_dict["expiry_date"])
             mrz_code_dict["birth_date"] = self._get_birth_date(mrz_code_dict["birth_date"], mrz_code_dict["expiry_date"])
 
@@ -179,7 +189,7 @@ class FastMRZ:
 
             if (mrz_lines[1][-1] != self._get_final_check_digit(mrz_lines[1], mrz_code_dict["mrz_type"])
                     and mrz_code_dict["mrz_type"] not in ("MRVA", "MRVB")):
-                return {"status": "FAILURE", "message": "final checksum is not matching"}
+                return {"status": "FAILURE", "message": "Final checksum is not matching"}
         else:
             mrz_code_dict["mrz_type"] = "TD1"
 
@@ -193,21 +203,21 @@ class FastMRZ:
             mrz_code_dict["document_number"] = mrz_lines[0][5:14]
             mrz_code_dict["document_number_checkdigit"] = self._get_check_digit(mrz_code_dict["document_number"])
             if mrz_code_dict["document_number_checkdigit"] != mrz_lines[0][14]:
-                return {"status": "FAILURE", "message": "document number checksum is not matching"}
+                return {"status": "FAILURE", "message": "Document number checksum is not matching"}
 
             mrz_code_dict["optional_data_1"] = mrz_lines[0][15:].strip("<")
 
             # Line 2
             mrz_code_dict["birth_date"] = mrz_lines[1][:6]
             if self._get_check_digit(mrz_code_dict["birth_date"]) != mrz_lines[1][6]:
-                return {"status": "FAILURE", "message": "date of birth checksum is not matching"}
+                return {"status": "FAILURE", "message": "Date of birth checksum is not matching"}
             mrz_code_dict["birth_date"] = self._format_date(mrz_code_dict["birth_date"])
 
             mrz_code_dict["sex"] = mrz_lines[1][7]
 
             mrz_code_dict["expiry_date"] = mrz_lines[1][8:14]
             if self._get_check_digit(mrz_code_dict["expiry_date"]) != mrz_lines[1][14]:
-                return {"status": "FAILURE", "message": "date of expiry checksum is not matching"}
+                return {"status": "FAILURE", "message": "Date of expiry checksum is not matching"}
             mrz_code_dict["expiry_date"] = self._format_date(mrz_code_dict["expiry_date"])
 
             mrz_code_dict["birth_date"] = self._get_birth_date(mrz_code_dict["birth_date"], mrz_code_dict["expiry_date"])
@@ -218,7 +228,7 @@ class FastMRZ:
 
             mrz_code_dict["optional_data_2"] = mrz_lines[0][18:29].strip("<")
             if mrz_lines[1][-1] != self._get_final_check_digit(mrz_lines, mrz_code_dict["mrz_type"]):
-                return {"status": "FAILURE", "message": "final checksum is not matching"}
+                return {"status": "FAILURE", "message": "Final checksum is not matching"}
 
             # Line 3
             names = mrz_lines[2].split("<<")
@@ -232,7 +242,40 @@ class FastMRZ:
 
         return mrz_code_dict
 
-    def get_details_mrz(self, mrz_text):
+    def validate_mrz(self, mrz_text):
         mrz_text = self._cleanse_roi(mrz_text)
 
-        return self._parse_mrz(mrz_text)
+        result = self._parse_mrz(mrz_text)
+        if result.get("status") == "SUCCESS":
+            return {"is_valid": True, "message": "The given mrz is valid"}
+        else:
+            return {"is_valid": False, "message": result.get("message")}
+
+    def get_details(self, input_data, input_type="imagepath", ignore_parse=False, include_checkdigit=True):
+        if input_type == "imagepath":
+            if not self._is_valid(input_data):
+                return {"status": "FAILURE", "message": "Invalid input image"}
+            mrz_text = self._get_mrz(input_data)
+
+            return mrz_text if ignore_parse else self._parse_mrz(mrz_text)
+        elif input_type == "numpy":
+            # get_details_from_numpy(input_data, ignore_parse=False, include_checkdigit=True)
+            if isinstance(input_data, np.ndarray):
+                image = input_data
+            else:
+                raise ValueError("Input is not a valid NumPy array.")
+            pass
+        elif input_type == "base64":
+            image_array = self._base64_to_image_array(input_data)
+            mrz_text = self._get_mrz(image_array)
+
+            return mrz_text if ignore_parse else self._parse_mrz(mrz_text)
+        elif input_type == "pdf":
+            # get_details_from_pdf(input_data, ignore_parse=False, include_checkdigit=True)
+            pass
+        elif input_type == "text":
+            mrz_text = self._cleanse_roi(input_data)
+
+            return mrz_text if ignore_parse else self._parse_mrz(mrz_text)
+        else:
+            raise ValueError(f"Unsupported input_type: {input_type}")

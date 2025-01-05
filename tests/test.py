@@ -3,7 +3,7 @@ import numpy as np
 import os
 from fastmrz import FastMRZ
 
-fast_mrz = FastMRZ()
+fast_mrz = FastMRZ(tesseract_path="C:\\Program Files\\Tesseract-OCR\\tesseract.exe")
 
 
 class TestFastMRZMethods(unittest.TestCase):
@@ -69,6 +69,25 @@ class TestFastMRZMethods(unittest.TestCase):
         self.assertIsInstance(mrz_data, dict)
         self.assertIn("status", mrz_data.keys())
 
+    def test_validate_mrz(self):
+        result  = fast_mrz.validate_mrz("P<GBRPUDARSAN<<HENERT<<<<<<<<<<<<<<<<<<<<<<<\n"
+                                         "7077979792GBR9505209M1704224<<<<<<<<<<<<<<00")
+        expected = {"is_valid": True, "message": "The given mrz is valid"}
+        self.assertEqual(result, expected)
+
+    def test_validate_mrz_invalid_format(self):
+        result = fast_mrz.validate_mrz("INVALIDTEXT<<HENERT<<<<<<<<<<<<<<<<<<<<<<<\n"
+                                       "7077979792GBR9505209M1704224<<<<<<<<<<<<<<00")
+        self.assertFalse(result["is_valid"])
+        self.assertIn("message", result)
+        self.assertIsInstance(result["message"], str)
+
+    def test_validate_mrz_invalid_check_digit(self):
+        result = fast_mrz.validate_mrz("P<GBRPUDARSAN<<HENERT<<<<<<<<<<<<<<<<<<<<<<<\n"
+                                       "7077979792GBR9505209M1704224<<<<<<<<<<<<<<01")
+        self.assertFalse(result["is_valid"])
+        self.assertIn("message", result)
+        self.assertIsInstance(result["message"], str)
 
 if __name__ == "__main__":
     unittest.main()
