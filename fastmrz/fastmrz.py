@@ -31,12 +31,22 @@ class FastMRZ:
             pytesseract.pytesseract.tesseract_cmd = self.tesseract_path
         image = cv2.imread(image_path, cv2.IMREAD_COLOR) if isinstance(image_path, str) else image_path
 
-        output_data = (output_data[0, :, :, 0] > 0.35) * 1
+        # Add preprocessing steps
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        # Increase contrast
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+        gray = clahe.apply(gray)
+
+        # Denoise
+        denoised = cv2.fastNlMeansDenoising(gray)
+
+        output_data = (output_data[0, :, :, 0] > 0.25) * 1
         output_data = np.uint8(output_data * 255)
         altered_image = cv2.resize(output_data, (image.shape[1], image.shape[0]))
 
         kernel = np.ones((5, 5), dtype=np.float32)
-        altered_image = cv2.erode(altered_image, kernel, iterations=3)
+        altered_image = cv2.erode(altered_image, kernel, iterations=1)
+
         contours, hierarchy = cv2.findContours(altered_image.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         if len(contours) == 0:
             return ""
@@ -46,9 +56,27 @@ class FastMRZ:
             c_area[j] = cv2.contourArea(contours[j])
 
         x, y, w, h = cv2.boundingRect(contours[np.argmax(c_area)])
-        roi_arr = image[y : y + h, x : x + w].copy()
 
-        return pytesseract.image_to_string(roi_arr, lang="mrz")
+        # Add padding to the ROI
+        padding = 10  # Adjust this value as needed
+        x_start = max(0, x - padding)
+        y_start = max(0, y - padding)
+        x_end = min(image.shape[1], x + w + padding)
+        y_end = min(image.shape[0], y + h + padding)
+
+        roi_arr = image[y_start:y_end, x_start:x_end].copy()
+
+        # Optional: Show the ROI for debugging
+        # cv2.imshow("ROI", roi_arr)
+        # cv2.waitKey(0)
+
+        # Apply additional preprocessing to ROI before OCR
+        roi_gray = cv2.cvtColor(roi_arr, cv2.COLOR_BGR2GRAY)
+        roi_thresh = cv2.threshold(roi_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+
+        # Configure pytesseract parameters for better MRZ recognition
+        custom_config = r'--oem 3 --psm 6'
+        return pytesseract.image_to_string(roi_thresh, lang="mrz", config=custom_config)
 
     def _cleanse_roi(self, mrz_text):
         input_list = mrz_text.replace(" ", "").split("\n")

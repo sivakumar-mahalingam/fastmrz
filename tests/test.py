@@ -3,7 +3,7 @@ import numpy as np
 import os
 from fastmrz import FastMRZ
 
-fast_mrz = FastMRZ(tesseract_path="C:\\Program Files\\Tesseract-OCR\\tesseract.exe")
+fast_mrz = FastMRZ()
 
 
 class TestFastMRZMethods(unittest.TestCase):
