@@ -31,15 +31,6 @@ class FastMRZ:
             pytesseract.pytesseract.tesseract_cmd = self.tesseract_path
         image = cv2.imread(image_path, cv2.IMREAD_COLOR) if isinstance(image_path, str) else image_path
 
-        # Add preprocessing steps
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        # Increase contrast
-        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-        gray = clahe.apply(gray)
-
-        # Denoise
-        denoised = cv2.fastNlMeansDenoising(gray)
-
         output_data = (output_data[0, :, :, 0] > 0.25) * 1
         output_data = np.uint8(output_data * 255)
         altered_image = cv2.resize(output_data, (image.shape[1], image.shape[0]))
@@ -58,17 +49,13 @@ class FastMRZ:
         x, y, w, h = cv2.boundingRect(contours[np.argmax(c_area)])
 
         # Add padding to the ROI
-        padding = 10  # Adjust this value as needed
+        padding = 10
         x_start = max(0, x - padding)
         y_start = max(0, y - padding)
         x_end = min(image.shape[1], x + w + padding)
         y_end = min(image.shape[0], y + h + padding)
 
         roi_arr = image[y_start:y_end, x_start:x_end].copy()
-
-        # Optional: Show the ROI for debugging
-        # cv2.imshow("ROI", roi_arr)
-        # cv2.waitKey(0)
 
         # Apply additional preprocessing to ROI before OCR
         roi_gray = cv2.cvtColor(roi_arr, cv2.COLOR_BGR2GRAY)
@@ -283,7 +270,12 @@ class FastMRZ:
         if input_type == "imagepath":
             if not self._is_valid(input_data):
                 return {"status": "FAILURE", "message": "Invalid input image"}
-            mrz_text = self._get_mrz(input_data)
+            image_file = open(input_data, "rb")
+            image_data = image_file.read()
+            image_file.close()
+            base64_string = base64.b64encode(image_data).decode("utf-8")
+            image_array = self._base64_to_image_array(base64_string)
+            mrz_text = self._get_mrz(image_array)
 
             return mrz_text if ignore_parse else self._parse_mrz(mrz_text)
         elif input_type == "numpy":

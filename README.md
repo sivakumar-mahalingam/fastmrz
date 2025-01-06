@@ -28,12 +28,12 @@ This repository extracts the Machine Readable Zone (MRZ) from document images. T
 ![NumPy](https://img.shields.io/badge/numpy-316192?style=for-the-badge&logo=numpy&logoColor=white)
 ![ONNX](https://img.shields.io/badge/ONNX-7B7B7B?style=for-the-badge&logo=onnx&logoColor=white)
 
+## 🚨Prerequisites
+- Install [Tesseract OCR](https://tesseract-ocr.github.io/tessdoc/Installation.html) engine. And set `PATH` variable with the executable and ensure that tesseract can be reached from the command line. 
+
 ## ⚙️Installation
 
-
-1. Install [Tesseract OCR](https://tesseract-ocr.github.io/tessdoc/Installation.html) engine. And set `PATH` variable with the executable. 
-
-2. Install `fastmrz`
+1. Install `fastmrz`
     ```bash
     pip install fastmrz
     ```
@@ -44,7 +44,7 @@ This repository extracts the Machine Readable Zone (MRZ) from document images. T
      conda activate fastmrz
      ```
 
-3. Copy  the `mrz.traineddata` file from the `tessdata` folder of the [repository](https://github.com/sivakumar-mahalingam/fastmrz/raw/main/tessdata/mrz.traineddata) into the `tessdata` folder of the Tesseract installation on **YOUR MACHINE**
+2. Copy  the `mrz.traineddata` file from the `tessdata` folder of the [repository](https://github.com/sivakumar-mahalingam/fastmrz/raw/main/tessdata/mrz.traineddata) into the `tessdata` folder of the Tesseract installation on **YOUR MACHINE**
 
 ## 💡Example
 
@@ -114,7 +114,7 @@ Now, based on the example of a national passport, let us take a closer look at t
 
 ![MRZ GIF](https://raw.githubusercontent.com/sivakumar-mahalingam/fastmrz/main/docs/mrz.gif)
 
-## 🗹ToDo
+## ✅ToDo
 
 - [x] Include mrva and mrvb documents
 - [x] Add wiki page
@@ -130,6 +130,7 @@ Now, based on the example of a national passport, let us take a closer look at t
 - [x] Add function - validate_mrz
 - [ ] Add function - generate_mrz
 - [ ] Extract face image
+- [ ] Add documentation page
 
 ## ⚖️License
 
