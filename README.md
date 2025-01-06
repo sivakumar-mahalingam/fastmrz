@@ -12,13 +12,13 @@
 
 This repository extracts the Machine Readable Zone (MRZ) from document images. The MRZ typically contains important information such as the document holder's name, nationality, document number, date of birth, etc.
 
-**️Features:**
+## ️✨Features:
 
-- Detects and extracts the MRZ region from document images
-- Contour detection to accurately identify the MRZ area
-- Custom trained models using ONNX 
-- Contains checksum logics for data validation
-- Outputs the extracted MRZ region as text/json for further processing or analysis
+- 👁️Detects and extracts the MRZ region from document images
+- ️🔍Contour detection to accurately identify the MRZ area
+- 🪄Custom trained models using ONNX 
+- 🆗Contains checksum logics for data validation
+- 📤Outputs the extracted MRZ region as text/json
 
 
 ## 🛠️Built With
@@ -118,7 +118,7 @@ Now, based on the example of a national passport, let us take a closer look at t
 
 - [x] Include mrva and mrvb documents
 - [x] Add wiki page
-- [ ] Support numpy array as input
+- [x] Support numpy array as input
 - [x] Support mrz text as input
 - [x] Support base64 as input
 - [ ] Support pdf as input

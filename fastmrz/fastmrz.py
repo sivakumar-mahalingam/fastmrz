@@ -138,13 +138,6 @@ class FastMRZ:
 
         return image_array
 
-    def get_details_old(self, image, ignore_parse=False, include_checkdigit=True):
-        if not self._is_valid(image):
-            return {"status": "FAILURE", "message": "Invalid input image"}
-        mrz_text = self._get_mrz(image)
-
-        return mrz_text if ignore_parse else self._parse_mrz(mrz_text)
-
     def _parse_mrz(self, mrz_text):
         if not mrz_text:
             return {"status": "FAILURE", "message": "No MRZ detected"}
@@ -269,7 +262,7 @@ class FastMRZ:
     def get_details(self, input_data, input_type="imagepath", ignore_parse=False, include_checkdigit=True):
         if input_type == "imagepath":
             if not self._is_valid(input_data):
-                return {"status": "FAILURE", "message": "Invalid input image"}
+                raise ValueError("Input is not a valid image file.")
             image_file = open(input_data, "rb")
             image_data = image_file.read()
             image_file.close()
@@ -279,12 +272,11 @@ class FastMRZ:
 
             return mrz_text if ignore_parse else self._parse_mrz(mrz_text)
         elif input_type == "numpy":
-            # get_details_from_numpy(input_data, ignore_parse=False, include_checkdigit=True)
-            if isinstance(input_data, np.ndarray):
-                image = input_data
-            else:
+            if not self._is_valid(input_data):
                 raise ValueError("Input is not a valid NumPy array.")
-            pass
+            mrz_text = self._get_mrz(input_data)
+
+            return mrz_text if ignore_parse else self._parse_mrz(mrz_text)
         elif input_type == "base64":
             image_array = self._base64_to_image_array(input_data)
             mrz_text = self._get_mrz(image_array)
