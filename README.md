@@ -1,5 +1,7 @@
 # Fast MRZ
 
+<div align="center">
+
 [![License](https://img.shields.io/badge/license-AGPL%203.0-34D058?color=blue)](https://github.com/sivakumar-mahalingam/fastmrz/blob/main/LICENSE)
 [![Downloads](https://static.pepy.tech/badge/fastmrz)](https://pypistats.org/packages/fastmrz)
 ![Python](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue?logo=python&logoColor=959DA5)
@@ -10,7 +12,18 @@
     <img src="https://raw.githubusercontent.com/sivakumar-mahalingam/fastmrz/main/docs/FastMRZ.png" target="_blank" />
 </a>
 
-This repository extracts the Machine Readable Zone (MRZ) from document images. The MRZ typically contains important information such as the document holder's name, nationality, document number, date of birth, etc.
+FastMRZ is an open-source Python package that extracts the Machine Readable Zone (MRZ) from passports and other documents. FastMRZ accepts various input formats such as Image, Base64 string, MRZ string, or NumPy array. 
+
+[Features](#features) •
+[Built With](#built-with) •
+[Prerequisites](#prerequisites) •
+[Installation](#installation) •
+[Example](#example) •
+[Wiki](#wiki) •
+[ToDo](#todo) •
+[Contributing](#contributing)
+
+</div>
 
 ## ️✨Features:
 
@@ -93,7 +106,7 @@ P<GBRPUDARSAN<<HENERT<<<<<<<<<<<<<<<<<<<<<<<
 7077979792GBR9505209M1704224<<<<<<<<<<<<<<00
 ```
 
-## 📃MRZ Wiki
+## 📃Wiki
 
 <details>
     <summary><b>MRZ Types & Format</b></summary>
@@ -125,18 +138,29 @@ Now, based on the example of a national passport, let us take a closer look at t
 - [x] Function to return mrz text as output
 - [ ] Bulk process
 - [ ] Train Tesseract model with additional data
-- [ ] Add function parameter - include_checkdigit
+- [x] Add function parameter - include_checkdigit
 - [ ] Add function - get_mrz_image
 - [x] Add function - validate_mrz
 - [ ] Add function - generate_mrz
 - [ ] Extract face image
 - [ ] Add documentation page
 
+## 🤝 Contributing
+
+Contributions are welcome! Here's how you can help:
+
+1. Fork the repository
+2. Create a new branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+5. Push to the branch (`git push origin feature/amazing-feature`)
+6. Open a Pull Request
+
 ## ⚖️License
 
 Distributed under the AGPL-3.0 License. See `LICENSE` for more information.
 
-## ⭐Show your support
+## 🙏Show your support
 
 Give a ⭐️ if <a href="https://github.com/sivakumar-mahalingam/fastmrz/">this</a> project helped you!
 
