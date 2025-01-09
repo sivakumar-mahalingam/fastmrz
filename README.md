@@ -164,3 +164,12 @@ Distributed under the AGPL-3.0 License. See `LICENSE` for more information.
 
 Give a ⭐️ if <a href="https://github.com/sivakumar-mahalingam/fastmrz/">this</a> project helped you!
 
+## 🚀Who's Using It?
+
+We’d love to know who’s using **fastmrz**! If your company or project uses this package, feel free to share your story. You can:
+
+- Open an issue with the title "We are using fastmrz!" and include your project or company name.
+
+Thank you for supporting **fastmrz**! 🤟
+
+
