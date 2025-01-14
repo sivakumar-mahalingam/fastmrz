@@ -20,7 +20,7 @@ class FastMRZ:
         image = cv2.resize(image, (256, 256), interpolation=cv2.INTER_NEAREST)
         image = np.asarray(np.float32(image / 255))
 
-        if len(image.shape) > 3:
+        if len(image.shape) >= 3:
             image = image[:, :, :3]
         image = np.reshape(image, (1, 256, 256, 3))
 
@@ -77,9 +77,9 @@ class FastMRZ:
 
     def _get_final_checkdigit(self, input_string, input_type):
         if input_type == "TD3":
-            return self._get_checkdigit(input_string[:10] + input_string[13:20] + input_string[21:43])
+            return self._get_checkdigit(input_string[1][:10] + input_string[1][13:20] + input_string[1][21:43])
         elif input_type == "TD2":
-            return self._get_checkdigit(input_string[:10] + input_string[13:20] + input_string[21:35])
+            return self._get_checkdigit(input_string[1][:10] + input_string[1][13:20] + input_string[1][21:35])
         else:
             return self._get_checkdigit(input_string[0][5:] + input_string[1][:7] + input_string[1][8:15]
                                          + input_string[1][18:29])

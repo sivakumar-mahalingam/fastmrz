@@ -27,12 +27,12 @@ class TestFastMRZMethods(unittest.TestCase):
     def test_get_final_check_digit(self):
         input_string = "I<UTOERIKSSON<<ANNA<MARIA<<<<<<<<<<<\nD231458907UTO7408122F1204159<<<<<<<6"
         input_type = "TD2"
-        final_check_digit = fast_mrz._get_final_check_digit(input_string, input_type)
+        final_check_digit = fast_mrz._get_final_checkdigit(input_string, input_type)
         self.assertIsInstance(final_check_digit, str)
 
     def test_get_check_digit(self):
         input_string = "I<UTOERIKSSON<<ANNA< MARIA<<<<< <<<<<<\nD231458907UTO7408122F1204159<<<<<<<6\n\n"
-        check_digit = fast_mrz._get_check_digit(input_string)
+        check_digit = fast_mrz._get_checkdigit(input_string)
         self.assertIsInstance(check_digit, str)
 
     def test_format_date(self):
