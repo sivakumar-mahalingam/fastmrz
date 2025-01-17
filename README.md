@@ -25,7 +25,7 @@ FastMRZ is an open-source Python package that extracts the Machine Readable Zone
 
 </div>
 
-## ️✨Features:
+## ️✨Features
 
 - 👁️Detects and extracts the MRZ region from document images
 - ️🔍Contour detection to accurately identify the MRZ area
