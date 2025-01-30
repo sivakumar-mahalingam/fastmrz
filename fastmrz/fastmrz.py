@@ -60,11 +60,11 @@ class FastMRZ:
 
         # Apply additional preprocessing to ROI before OCR
         roi_gray = cv2.cvtColor(roi_arr, cv2.COLOR_BGR2GRAY)
-        roi_thresh = cv2.threshold(roi_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+        roi_threshold = cv2.threshold(roi_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
 
         # Configure pytesseract parameters for better MRZ recognition
         custom_config = r'--oem 3 --psm 6'
-        return pytesseract.image_to_string(roi_thresh, lang="mrz", config=custom_config)
+        return pytesseract.image_to_string(roi_threshold, lang="mrz", config=custom_config)
 
     def _cleanse_roi(self, mrz_text):
         input_list = mrz_text.replace(" ", "").split("\n")
