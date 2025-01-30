@@ -56,6 +56,7 @@ class FastMRZ:
         y_end = min(image.shape[0], y + h + padding)
 
         roi_arr = image[y_start:y_end, x_start:x_end].copy()
+        roi_arr = cv2.convertScaleAbs(roi_arr, alpha=1.25, beta=-50)
 
         # Apply additional preprocessing to ROI before OCR
         roi_gray = cv2.cvtColor(roi_arr, cv2.COLOR_BGR2GRAY)
