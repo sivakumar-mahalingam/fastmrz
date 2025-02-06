@@ -137,7 +137,8 @@ Now, based on the example of a national passport, let us take a closer look at t
 - [ ] Support pdf as input
 - [x] Function to return mrz text as output
 - [ ] Bulk process
-- [ ] Image Enhancement
+- [ ] Add function parameter - Image Enhancement
+- [ ] Add function parameter - Image Enhancement Model
 - [ ] Train Tesseract model with additional data
 - [x] Add function parameter - include_checkdigit
 - [ ] Add function - get_mrz_image
