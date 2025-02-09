@@ -56,10 +56,15 @@ class FastMRZ:
         y_end = min(image.shape[0], y + h + padding)
 
         roi_arr = image[y_start:y_end, x_start:x_end].copy()
-        roi_arr = cv2.convertScaleAbs(roi_arr, alpha=1.25, beta=-50)
+        # roi_arr = cv2.convertScaleAbs(roi_arr, alpha=1.25, beta=-50)
 
         # Apply additional preprocessing to ROI before OCR
         roi_gray = cv2.cvtColor(roi_arr, cv2.COLOR_BGR2GRAY)
+
+        # kernel = np.ones((1, 1), np.uint8)
+        # roi_dilate = cv2.dilate(roi_gray, kernel, iterations=1)
+        # roi_dilate = cv2.erode(roi_dilate, kernel, iterations=1)
+
         roi_threshold = cv2.threshold(roi_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
 
         # Configure pytesseract parameters for better MRZ recognition
