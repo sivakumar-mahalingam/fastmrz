@@ -171,7 +171,8 @@ class FastMRZ:
 
             mrz_code_dict["issuer_code"] = mrz_lines[0][2:5]
             if not mrz_code_dict["issuer_code"].isalpha():
-                return {"status": "FAILURE", "message": "Invalid MRZ format"}
+                mrz_code_dict["status"] = "FAILURE"
+                mrz_code_dict["status_message"] = "Invalid MRZ format"
 
             names = mrz_lines[0][5:].split("<<")
             mrz_code_dict["surname"] = names[0].replace("<", " ")
@@ -181,18 +182,21 @@ class FastMRZ:
             mrz_code_dict["document_number"] = mrz_lines[1][:9].replace("<", "")
             document_number_checkdigit = self._get_checkdigit(mrz_code_dict["document_number"])
             if document_number_checkdigit != mrz_lines[1][9]:
-                return {"status": "FAILURE", "message": "Document number checksum is not matching"}
+                mrz_code_dict["status"] = "FAILURE"
+                mrz_code_dict["status_message"] = "Document number checksum is not matching"
             if include_checkdigit:
                 mrz_code_dict["document_number_checkdigit"] = document_number_checkdigit
 
             mrz_code_dict["nationality_code"] = mrz_lines[1][10:13]
             if not mrz_code_dict["nationality_code"].isalpha():
-                return {"status": "FAILURE", "message": "Invalid MRZ format"}
+                mrz_code_dict["status"] = "FAILURE"
+                mrz_code_dict["status_message"] = "Invalid MRZ format"
 
             mrz_code_dict["birth_date"] = mrz_lines[1][13:19]
             birth_date_checkdigit = self._get_checkdigit(mrz_code_dict["birth_date"])
             if birth_date_checkdigit != mrz_lines[1][19]:
-                return {"status": "FAILURE", "message": "Date of birth checksum is not matching"}
+                mrz_code_dict["status"] = "FAILURE"
+                mrz_code_dict["status_message"] = "Date of birth checksum is not matching"
             if include_checkdigit:
                 mrz_code_dict["birth_date_checkdigit"] = birth_date_checkdigit
             mrz_code_dict["birth_date"] = self._format_date(mrz_code_dict["birth_date"])
@@ -202,7 +206,8 @@ class FastMRZ:
             mrz_code_dict["expiry_date"] = mrz_lines[1][21:27]
             expiry_date_checkdigit = self._get_checkdigit(mrz_code_dict["expiry_date"])
             if expiry_date_checkdigit != mrz_lines[1][27]:
-                return {"status": "FAILURE", "message": "Date of expiry checksum is not matching"}
+                mrz_code_dict["status"] = "FAILURE"
+                mrz_code_dict["status_message"] = "Date of expiry checksum is not matching"
             if include_checkdigit:
                 mrz_code_dict["expiry_date_checkdigit"] = expiry_date_checkdigit
             mrz_code_dict["expiry_date"] = self._format_date(mrz_code_dict["expiry_date"])
@@ -214,7 +219,8 @@ class FastMRZ:
                 mrz_code_dict["optional_data"] = mrz_lines[1][28:42].strip("<")
                 optional_data_checkdigit = self._get_checkdigit(mrz_code_dict["optional_data"].strip("<"))
                 if optional_data_checkdigit != mrz_lines[1][42]:
-                    return {"status": "FAILURE", "message": "Optional data checksum is not matching"}
+                    mrz_code_dict["status"] = "FAILURE"
+                    mrz_code_dict["status_message"] = "Optional data checksum is not matching"
                 if include_checkdigit:
                     mrz_code_dict["optional_data_checkdigit"] = optional_data_checkdigit
             elif mrz_code_dict["mrz_type"] == "MRVA":
@@ -225,7 +231,8 @@ class FastMRZ:
             final_checkdigit = self._get_final_checkdigit(mrz_lines, mrz_code_dict["mrz_type"])
             if (mrz_lines[1][-1] != final_checkdigit
                     and mrz_code_dict["mrz_type"] not in ("MRVA", "MRVB")):
-                return {"status": "FAILURE", "message": "Final checksum is not matching"}
+                mrz_code_dict["status"] = "FAILURE"
+                mrz_code_dict["status_message"] = "Final checksum is not matching"
             if include_checkdigit:
                 mrz_code_dict["final_checkdigit"] = final_checkdigit
         else:
@@ -236,12 +243,14 @@ class FastMRZ:
 
             mrz_code_dict["issuer_code"] = mrz_lines[0][2:5]
             if not mrz_code_dict["issuer_code"].isalpha():
-                return {"status": "FAILURE", "message": "Invalid MRZ format"}
+                mrz_code_dict["status"] = "FAILURE"
+                mrz_code_dict["status_message"] = "Invalid MRZ format"
 
             mrz_code_dict["document_number"] = mrz_lines[0][5:14]
             document_number_checkdigit = self._get_checkdigit(mrz_code_dict["document_number"])
             if document_number_checkdigit != mrz_lines[0][14]:
-                return {"status": "FAILURE", "message": "Document number checksum is not matching"}
+                mrz_code_dict["status"] = "FAILURE"
+                mrz_code_dict["status_message"] = "Document number checksum is not matching"
             if include_checkdigit:
                 mrz_code_dict["document_number_checkdigit"] = document_number_checkdigit
 
@@ -251,7 +260,8 @@ class FastMRZ:
             mrz_code_dict["birth_date"] = mrz_lines[1][:6]
             birth_date_checkdigit = self._get_checkdigit(mrz_code_dict["birth_date"])
             if birth_date_checkdigit != mrz_lines[1][6]:
-                return {"status": "FAILURE", "message": "Date of birth checksum is not matching"}
+                mrz_code_dict["status"] = "FAILURE"
+                mrz_code_dict["status_message"] = "Date of birth checksum is not matching"
             if include_checkdigit:
                 mrz_code_dict["birth_date_checkdigit"] = birth_date_checkdigit
             mrz_code_dict["birth_date"] = self._format_date(mrz_code_dict["birth_date"])
@@ -261,7 +271,8 @@ class FastMRZ:
             mrz_code_dict["expiry_date"] = mrz_lines[1][8:14]
             expiry_date_checkdigit = self._get_checkdigit(mrz_code_dict["expiry_date"])
             if expiry_date_checkdigit != mrz_lines[1][14]:
-                return {"status": "FAILURE", "message": "Date of expiry checksum is not matching"}
+                mrz_code_dict["status"] = "FAILURE"
+                mrz_code_dict["status_message"] = "Date of expiry checksum is not matching"
             if include_checkdigit:
                 mrz_code_dict["expiry_date_checkdigit"] = expiry_date_checkdigit
             mrz_code_dict["expiry_date"] = self._format_date(mrz_code_dict["expiry_date"])
@@ -270,12 +281,14 @@ class FastMRZ:
 
             mrz_code_dict["nationality_code"] = mrz_lines[1][15:18]
             if not mrz_code_dict["nationality_code"].isalpha():
-                return {"status": "FAILURE", "message": "Invalid MRZ format"}
+                mrz_code_dict["status"] = "FAILURE"
+                mrz_code_dict["status_message"] = "Invalid MRZ format"
 
             mrz_code_dict["optional_data_2"] = mrz_lines[0][18:29].strip("<")
             final_checkdigit = self._get_final_checkdigit(mrz_lines, mrz_code_dict["mrz_type"])
             if mrz_lines[1][-1] != final_checkdigit:
-                return {"status": "FAILURE", "message": "Final checksum is not matching"}
+                mrz_code_dict["status"] = "FAILURE"
+                mrz_code_dict["status_message"] = "Final checksum is not matching"
             if include_checkdigit:
                 mrz_code_dict["final_checkdigit"] = final_checkdigit
 
@@ -287,7 +300,8 @@ class FastMRZ:
         mrz_code_dict["mrz_text"] = mrz_text
 
         # Final status
-        mrz_code_dict["status"] = "SUCCESS"
+        if mrz_code_dict.get("status") != "FAILURE":
+            mrz_code_dict["status"] = "SUCCESS"
 
         return mrz_code_dict
 
