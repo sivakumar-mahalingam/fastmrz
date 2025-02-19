@@ -154,10 +154,10 @@ class FastMRZ:
 
     def _parse_mrz(self, mrz_text, include_checkdigit=True):
         if not mrz_text:
-            return {"status": "FAILURE", "message": "No MRZ detected"}
+            return {"status": "FAILURE", "status_message": "No MRZ detected"}
         mrz_lines = mrz_text.strip().split("\n")
         if len(mrz_lines) not in [2, 3]:
-            return {"status": "FAILURE", "message": "Invalid MRZ format"}
+            return {"status": "FAILURE", "status_message": "Invalid MRZ format"}
 
         mrz_code_dict = {}
         if len(mrz_lines) == 2:
@@ -310,9 +310,9 @@ class FastMRZ:
 
         result = self._parse_mrz(mrz_text)
         if result.get("status") == "SUCCESS":
-            return {"is_valid": True, "message": "The given mrz is valid"}
+            return {"is_valid": True, "status_message": "The given mrz is valid"}
         else:
-            return {"is_valid": False, "message": result.get("message")}
+            return {"is_valid": False, "status_message": result.get("status_message")}
 
     def get_details(self, input_data, input_type="imagepath", ignore_parse=False, include_checkdigit=True):
         if input_type == "imagepath":
