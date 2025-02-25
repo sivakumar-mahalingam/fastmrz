@@ -146,6 +146,7 @@ Now, based on the example of a national passport, let us take a closer look at t
 - [ ] Add function - generate_mrz
 - [ ] Extract face image
 - [ ] Add documentation page
+- [ ] Add all checkdigit status
 
 ## 🤝 Contributing
 
