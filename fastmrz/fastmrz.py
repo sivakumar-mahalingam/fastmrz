@@ -117,6 +117,7 @@ class FastMRZ:
         if not valid_lengths:
             return []
 
+        # Get the maximum valid length from (30, 36, 44)
         max_length = max(valid_lengths)
 
         new_list = [item for item in input_list if len(item) == max_length]
