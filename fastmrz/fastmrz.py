@@ -33,7 +33,7 @@ class FastMRZ:
         Parameters:
             image (str): input image
             alpha (float): Contrast control (1.0-3.0)
-            beta (float): Brightness control (0-100)
+            beta (int): Brightness control (0-100)
 
         Returns:
             result (numpy.ndarray): Resulting overlapped image
@@ -43,7 +43,7 @@ class FastMRZ:
                 raise ValueError("Could not read the image")
 
             enhanced = cv2.convertScaleAbs(image, alpha=alpha, beta=beta)
-            result = cv2.addWeighted(enhanced, 0.5, image, 0.5, 0.0)
+            result = cv2.addWeighted(image, 0.5, enhanced, 0.5, 0.0)
 
             return result
         except Exception as e:
