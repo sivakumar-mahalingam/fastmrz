@@ -26,6 +26,33 @@ class FastMRZ:
 
         return image
 
+    def _overlap_images(self, image, alpha=1.3, beta=30):
+        """
+        Overlaps the image with its contrast-enhanced version to improve text readability.
+
+        Parameters:
+            image (str): input image
+            alpha (float): Contrast control (1.0-3.0)
+            beta (float): Brightness control (0-100)
+
+        Returns:
+            result (numpy.ndarray): Resulting overlapped image
+        """
+        try:
+            # Read the original image
+            if image is None:
+                raise ValueError("Could not read the image")
+
+            # Create enhanced version using convertScaleAbs
+            enhanced = cv2.convertScaleAbs(image, alpha=alpha, beta=beta)
+
+            # Blend the images
+            result = cv2.addWeighted(enhanced, 0.5, image, 0.5, 0.0)
+
+            return result
+        except Exception as e:
+            raise ValueError(f"Error processing image: {str(e)}")
+
     def _get_roi(self, output_data, image_path):
         if self.tesseract_path != "":
             pytesseract.pytesseract.tesseract_cmd = self.tesseract_path
@@ -70,6 +97,7 @@ class FastMRZ:
 
         roi_arr = image[y_start:y_end, x_start:x_end].copy()
         # roi_arr = cv2.convertScaleAbs(roi_arr, alpha=1.25, beta=-50)
+        roi_arr = self._overlap_images(roi_arr, alpha=1.3, beta=30)
 
         # Apply additional preprocessing to ROI before OCR
         roi_gray = cv2.cvtColor(roi_arr, cv2.COLOR_BGR2GRAY)
