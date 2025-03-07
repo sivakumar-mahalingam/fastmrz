@@ -31,6 +31,19 @@ class FastMRZ:
             pytesseract.pytesseract.tesseract_cmd = self.tesseract_path
         image = cv2.imread(image_path, cv2.IMREAD_COLOR) if isinstance(image_path, str) else image_path
 
+        # Step 1: Sharpen the image to enhance the edges of the text
+        kernel = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
+        sharpened_image = cv2.filter2D(image, -1, kernel)
+
+        # Step 2: Double the image size with better interpolation (INTER_CUBIC)
+        height, width = sharpened_image.shape[:2]
+        dim = (width * 2, height * 2)
+
+        # Resize the image
+        resized_image = cv2.resize(sharpened_image, dim, interpolation=cv2.INTER_CUBIC)
+
+        image = resized_image
+
         output_data = (output_data[0, :, :, 0] > 0.25) * 1
         output_data = np.uint8(output_data * 255)
         altered_image = cv2.resize(output_data, (image.shape[1], image.shape[0]))
@@ -60,6 +73,7 @@ class FastMRZ:
 
         # Apply additional preprocessing to ROI before OCR
         roi_gray = cv2.cvtColor(roi_arr, cv2.COLOR_BGR2GRAY)
+        roi_gray = cv2.fastNlMeansDenoising(roi_gray, None, 30, 7, 21)
 
         # kernel = np.ones((1, 1), np.uint8)
         # roi_dilate = cv2.dilate(roi_gray, kernel, iterations=1)
@@ -74,10 +88,14 @@ class FastMRZ:
     def _cleanse_roi(self, mrz_text):
         input_list = mrz_text.replace(" ", "").split("\n")
 
-        selection_length = next((len(item) for item in input_list if "<" in item and len(item) in {30, 36, 44}), None,)
-        if selection_length is None:
-            return ""
-        new_list = [item for item in input_list if len(item) >= selection_length]
+        valid_lengths = {len(item) for item in input_list} & {30, 36, 44}
+
+        if not valid_lengths:
+            return []
+
+        max_length = max(valid_lengths)
+
+        new_list = [item for item in input_list if len(item) == max_length]
 
         return "\n".join(new_list)
 
@@ -136,13 +154,17 @@ class FastMRZ:
 
         return self._cleanse_roi(mrz_roi)
 
-    def _image_to_base64(self, imagepath):
-        image_file = open(imagepath, "rb")
-        image_data = image_file.read()
-        image_file.close()
-        base64_string = base64.b64encode(image_data).decode("utf-8")
+    def _image_to_base64(self, image):
+        if isinstance(image, str):
+            image = cv2.imread(image, cv2.IMREAD_COLOR)
+            if image is None:
+                raise ValueError(f"Failed to read image from path {image}")
 
-        return base64_string
+        success, buffer = cv2.imencode('.png', image)
+        if not success:
+            raise ValueError(f"Failed to encode image")
+
+        return base64.b64encode(buffer).decode("utf-8")
 
     def _base64_to_array(self, base64_string):
         image_data = base64.b64decode(base64_string)
@@ -303,7 +325,7 @@ class FastMRZ:
         if mrz_code_dict.get("status") != "FAILURE":
             mrz_code_dict["status"] = "SUCCESS"
 
-        return mrz_code_dict
+        return dict(sorted(mrz_code_dict.items()))
 
     def validate_mrz(self, mrz_text):
         mrz_text = self._cleanse_roi(mrz_text)
