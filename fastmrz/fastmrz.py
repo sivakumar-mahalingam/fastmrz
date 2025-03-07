@@ -39,14 +39,10 @@ class FastMRZ:
             result (numpy.ndarray): Resulting overlapped image
         """
         try:
-            # Read the original image
             if image is None:
                 raise ValueError("Could not read the image")
 
-            # Create enhanced version using convertScaleAbs
             enhanced = cv2.convertScaleAbs(image, alpha=alpha, beta=beta)
-
-            # Blend the images
             result = cv2.addWeighted(enhanced, 0.5, image, 0.5, 0.0)
 
             return result
