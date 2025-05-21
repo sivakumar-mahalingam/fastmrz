@@ -1,0 +1,77 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fastmrz"
+version = "2.1"
+description = "Extracts the Machine Readable Zone (MRZ) data from document images"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "AGPLv3" }
+authors = [
+    { name = "Sivakumar Mahalingam" }
+]
+classifiers = [
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: Microsoft :: Windows :: Windows 10",
+    "Operating System :: Microsoft :: Windows :: Windows 11",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Image Processing",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Software Development",
+]
+keywords = [
+    "fastmrz",
+    "mrz",
+    "image processing",
+    "image recognition",
+    "ocr",
+    "computer vision",
+    "text recognition",
+    "text detection",
+    "artificial intelligence",
+    "onnx"
+]
+dependencies = [
+    "opencv-python-headless>=4.11.0.86",
+    "pytesseract>=0.3.10",
+]
+
+[project.urls]
+Homepage = "https://github.com/sivakumar-mahalingam/fastmrz/"
+Source = "https://github.com/sivakumar-mahalingam/fastmrz"
+Tracker = "https://github.com/sivakumar-mahalingam/fastmrz/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["fastmrz"]
+include = [
+    "fastmrz/**/*.onnx",
+]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "fastmrz",
+    "tests",
+    "docs",
+    "tessdata",
+    "data",
+    "README.md",
+    "LICENSE",
+    "CODE_OF_CONDUCT.md",
+    "fastmrz/**/*.onnx",
+]
+
+[project.scripts]
+test = "unittest:main"

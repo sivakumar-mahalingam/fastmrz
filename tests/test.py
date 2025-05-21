@@ -1,21 +1,28 @@
 import unittest
+from pathlib import Path
+
 import numpy as np
-import os
+
 from fastmrz import FastMRZ
 
-fast_mrz = FastMRZ()
+BASE_DIR = Path(__file__).parent.parent
+DATA_DIR = BASE_DIR / "data"
+
+fast_mrz = FastMRZ(
+    tessdata_path=BASE_DIR / "tessdata",
+)
 
 
 class TestFastMRZMethods(unittest.TestCase):
     def test_process_image(self):
-        image_path = os.path.abspath("../data/td3.jpg")
+        image_path = DATA_DIR / "td3.jpg"
         processed_image = fast_mrz._process_image(image_path)
         self.assertIsInstance(processed_image, np.ndarray)
         self.assertEqual(processed_image.shape, (1, 256, 256, 3))
 
     def test_get_roi(self):
         output_data = np.random.rand(1, 256, 256, 1)
-        image_path = os.path.abspath("../data/td3.jpg")
+        image_path = DATA_DIR / "td3.jpg"
         roi = fast_mrz._get_roi(output_data, image_path)
         self.assertIsInstance(roi, str)
 
@@ -25,7 +32,9 @@ class TestFastMRZMethods(unittest.TestCase):
         self.assertIsInstance(cleansed_text, str)
 
     def test_get_final_check_digit(self):
-        input_string = "I<UTOERIKSSON<<ANNA<MARIA<<<<<<<<<<<\nD231458907UTO7408122F1204159<<<<<<<6"
+        input_string = (
+            "I<UTOERIKSSON<<ANNA<MARIA<<<<<<<<<<<\nD231458907UTO7408122F1204159<<<<<<<6"
+        )
         input_type = "TD2"
         final_check_digit = fast_mrz._get_final_checkdigit(input_string, input_type)
         self.assertIsInstance(final_check_digit, str)
@@ -41,53 +50,60 @@ class TestFastMRZMethods(unittest.TestCase):
         self.assertIsInstance(formatted_date, str)
 
     def test_read_raw_mrz(self):
-        image_path = os.path.abspath("../data/td2.jpg")
+        image_path = DATA_DIR / "td2.jpg"
         raw_mrz = fast_mrz.get_details(image_path, ignore_parse=True)
         self.assertIsInstance(raw_mrz, str)
 
     def test_read_mrz(self):
-        image_path = os.path.abspath("../data/td3.jpg")
+        image_path = DATA_DIR / "td3.jpg"
         mrz_data = fast_mrz.get_details(image_path)
         self.assertIsInstance(mrz_data, dict)
         self.assertIn("status", mrz_data.keys())
 
     def test_read_mrz_nomrz(self):
-        image_path = os.path.abspath("../data/nomrz.jpg")
+        image_path = DATA_DIR / "nomrz.jpg"
         mrz_data = fast_mrz.get_details(image_path)
         self.assertIsInstance(mrz_data, dict)
         self.assertIn("status", mrz_data.keys())
 
     def test_read_mrz_mrva(self):
-        image_path = os.path.abspath("../data/mrva.jpg")
+        image_path = DATA_DIR / "mrva.jpg"
         mrz_data = fast_mrz.get_details(image_path)
         self.assertIsInstance(mrz_data, dict)
         self.assertIn("status", mrz_data.keys())
 
     def test_read_mrz_mrvb(self):
-        image_path = os.path.abspath("../data/mrvb.jpg")
+        image_path = DATA_DIR / "mrvb.jpg"
         mrz_data = fast_mrz.get_details(image_path)
         self.assertIsInstance(mrz_data, dict)
         self.assertIn("status", mrz_data.keys())
 
     def test_validate_mrz(self):
-        result  = fast_mrz.validate_mrz("P<GBRPUDARSAN<<HENERT<<<<<<<<<<<<<<<<<<<<<<<\n"
-                                         "7077979792GBR9505209M1704224<<<<<<<<<<<<<<00")
-        expected = {"is_valid": True, "message": "The given mrz is valid"}
+        result = fast_mrz.validate_mrz(
+            "P<GBRPUDARSAN<<HENERT<<<<<<<<<<<<<<<<<<<<<<<\n"
+            "7077979792GBR9505209M1704224<<<<<<<<<<<<<<00"
+        )
+        expected = {"is_valid": True, "status_message": "The given mrz is valid"}
         self.assertEqual(result, expected)
 
     def test_validate_mrz_invalid_format(self):
-        result = fast_mrz.validate_mrz("INVALIDTEXT<<HENERT<<<<<<<<<<<<<<<<<<<<<<<\n"
-                                       "7077979792GBR9505209M1704224<<<<<<<<<<<<<<00")
+        result = fast_mrz.validate_mrz(
+            "INVALIDTEXT<<HENERT<<<<<<<<<<<<<<<<<<<<<<<\n"
+            "7077979792GBR9505209M1704224<<<<<<<<<<<<<<00"
+        )
         self.assertFalse(result["is_valid"])
-        self.assertIn("message", result)
-        self.assertIsInstance(result["message"], str)
+        self.assertIn("status_message", result)
+        self.assertIsInstance(result["status_message"], str)
 
     def test_validate_mrz_invalid_check_digit(self):
-        result = fast_mrz.validate_mrz("P<GBRPUDARSAN<<HENERT<<<<<<<<<<<<<<<<<<<<<<<\n"
-                                       "7077979792GBR9505209M1704224<<<<<<<<<<<<<<01")
+        result = fast_mrz.validate_mrz(
+            "P<GBRPUDARSAN<<HENERT<<<<<<<<<<<<<<<<<<<<<<<\n"
+            "7077979792GBR9505209M1704224<<<<<<<<<<<<<<01"
+        )
         self.assertFalse(result["is_valid"])
-        self.assertIn("message", result)
-        self.assertIsInstance(result["message"], str)
+        self.assertIn("status_message", result)
+        self.assertIsInstance(result["status_message"], str)
+
 
 if __name__ == "__main__":
     unittest.main()
