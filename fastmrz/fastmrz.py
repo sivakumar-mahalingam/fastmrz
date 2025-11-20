@@ -77,7 +77,7 @@ class FastMRZ:
         selection_length = next((len(item) for item in input_list if "<" in item and len(item) in {30, 36, 44}), None,)
         if selection_length is None:
             return ""
-        new_list = [item for item in input_list if len(item) >= selection_length]
+        new_list = [item for item in input_list if len(item) >= selection_length and "<" in item]
 
         return "\n".join(new_list)
 
