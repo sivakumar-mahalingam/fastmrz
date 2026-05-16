@@ -19,11 +19,26 @@ FastMRZ is an open-source Python package that extracts the Machine Readable Zone
 [Prerequisites](#prerequisites) •
 [Installation](#installation) •
 [Example](#example) •
+[Documentation](#documentation) •
 [Wiki](#wiki) •
 [ToDo](#todo) •
 [Contributing](#contributing)
 
 </div>
+
+## 📚 Documentation
+
+Comprehensive documentation is available at the [FastMRZ Documentation Site](https://sivakumar-mahalingam.github.io/fastmrz/):
+
+- [Getting Started](https://sivakumar-mahalingam.github.io/fastmrz/getting-started/) - Installation and setup
+- [How It Works](https://sivakumar-mahalingam.github.io/fastmrz/how-it-works/) - Architecture and processing pipeline
+- [API Reference](https://sivakumar-mahalingam.github.io/fastmrz/api-reference/) - Complete API documentation
+- [Supported Documents](https://sivakumar-mahalingam.github.io/fastmrz/supported-documents/) - Document types and MRZ formats
+- [Input Formats](https://sivakumar-mahalingam.github.io/fastmrz/input-formats/) - Supported input types
+- [Checksum Validation](https://sivakumar-mahalingam.github.io/fastmrz/checksum-validation/) - ICAO check digit details
+- [Limitations](https://sivakumar-mahalingam.github.io/fastmrz/limitations/) - Known limitations
+- [Contributing](https://sivakumar-mahalingam.github.io/fastmrz/contributing/) - How to contribute
+- [Changelog](https://sivakumar-mahalingam.github.io/fastmrz/changelog/) - Version history
 
 ## ️✨Features
 
@@ -108,6 +123,8 @@ P<GBRPUDARSAN<<HENERT<<<<<<<<<<<<<<<<<<<<<<<
 
 ## 📃Wiki
 
+For detailed information about MRZ types, formats, and ICAO Doc 9303 specifications, see the [Supported Documents](https://sivakumar-mahalingam.github.io/fastmrz/supported-documents/) documentation.
+
 <details>
     <summary><b>MRZ Types & Format</b></summary>
 
@@ -115,7 +132,7 @@ The standard for MRZ code is strictly regulated and has to comply with [Doc 9303
 
 There are currently several types of ICAO standard machine-readable zones, which vary in the number of lines and characters in each line:
 
-- TD-1 (e.g. citizen’s identification card, EU ID card, US Green Card): consists of 3 lines, 30 characters each.
+- TD-1 (e.g. citizen's identification card, EU ID card, US Green Card): consists of 3 lines, 30 characters each.
 - TD-2 (e.g. Romania ID, old type of German ID), and MRV-B (machine-readable visas type B — e.g. Schengen visa): consists of 2 lines, 36 characters each.
 - TD-3 (all international passports, also known as MRP), and MRV-A (machine-readable visas type A — issued by the USA, Japan, China, and others): consist of 2 lines, 44 characters each.
 
@@ -134,8 +151,8 @@ Now, based on the example of a national passport, let us take a closer look at t
 - [x] Support numpy array as input
 - [x] Support mrz text as input
 - [x] Support base64 as input
+- [x] Add documentation page
 - [ ] Support pdf as input
-- [x] Function to return mrz text as output
 - [ ] Bulk process
 - [ ] Add function parameter - Image Enhancement Model
 - [ ] Add function parameter - Text Image Enhancement Model
@@ -145,7 +162,6 @@ Now, based on the example of a national passport, let us take a closer look at t
 - [x] Add function - validate_mrz
 - [ ] Add function - generate_mrz
 - [ ] Extract face image
-- [ ] Add documentation page
 - [ ] Add all checkdigit status
 
 ## 🤝 Contributing
