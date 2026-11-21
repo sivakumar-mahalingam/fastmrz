@@ -179,7 +179,7 @@ Other `status_message` values: `Invalid MRZ format`, `Invalid date of birth`, `I
 
 ## 📊Benchmark
 
-42 labelled real images (35 from [MRZ-Benchmark](https://github.com/tony-xlh/MRZ-Benchmark) plus the 7 samples in `data/`), exact match of the full MRZ text. The stress set applies 15 perturbations to 40 of them (600 images).
+42 labelled real document images (35 public sample images plus the 7 samples in `data/`), exact match of the full MRZ text. The stress set applies 15 perturbations to 40 of them (600 images).
 
 | Test | fastmrz 2.x | fastmrz 3.0 |
 |---|---|---|
@@ -207,12 +207,11 @@ Single MRZ lines: 1,034 real lines held out from the Doubango dataset (source im
 
 Reproduce with `python tools/benchmark.py <image dir> <ground truth json>`.
 
-## 🙌Credits
+## 🙌Third-party notice
 
 The recogniser is fine-tuned on the MRZ line dataset of
 [DoubangoTelecom/tesseractMRZ](https://github.com/DoubangoTelecom/tesseractMRZ),
-Copyright (c) 2019, DoubangoTelecom, BSD 3-Clause License. Benchmark images come from
-[tony-xlh/MRZ-Benchmark](https://github.com/tony-xlh/MRZ-Benchmark).
+Copyright (c) 2019, DoubangoTelecom, BSD 3-Clause License.
 
 ## 📃Wiki
 
