@@ -21,7 +21,6 @@ Pure Python, no Tesseract: the only dependencies are `numpy` and `opencv-python-
 [Install](#install) •
 [Usage](#usage) •
 [API reference](#api-reference) •
-[Benchmark](#benchmark) •
 [Documentation](#documentation) •
 [Wiki](#wiki) •
 [ToDo](#todo) •
@@ -46,7 +45,7 @@ Comprehensive documentation is available at the [FastMRZ Documentation Site](htt
 ## ️✨Features
 
 - 👁️Detects and extracts the MRZ region from document images, at any rotation, skew or perspective
-- 🎨Built-in 2.4 MB ONNX recogniser run through OpenCV: no Tesseract or GPU needed
+- 🎨Built-in 2.4 MB ONNX recogniser, trained on synthetic MRZ data and run through OpenCV: no Tesseract or GPU needed
 - 🆗Check digits validated per ICAO 9303, with automatic repair of misread characters
 - 📄Image path, NumPy array, Base64, bytes, PDF and MRZ text input; parallel batch processing
 - 📤Outputs the extracted MRZ as text or a parsed dict
@@ -67,7 +66,7 @@ Comprehensive documentation is available at the [FastMRZ Documentation Site](htt
 | opencv-python-headless | 4.8 or newer | 4.8.1, 5.0.0, 5.1.0 |
 | PyMuPDF (optional, PDF input only) | 1.23 or newer, except 1.26.5 and 1.26.6 (security advisory) | 1.23.26, 1.24.11, 1.26.4, 2.1 |
 
-No Tesseract, PyTorch or GPU needed. Retraining the model (`tools/`) is separate and needs Python 3.13, see [`tools/README.md`](tools/README.md).
+No Tesseract, PyTorch or GPU needed.
 
 ## ⚙️Install
 
@@ -176,43 +175,6 @@ When no MRZ is found the result is only `{"status": "FAILURE", "status_message":
 Other `status_message` values: `Invalid MRZ format`, `Invalid date of birth`, `Invalid date of expiry`,
 `Document number checksum is not matching`, `Date of birth checksum is not matching`,
 `Date of expiry checksum is not matching`, `Optional data checksum is not matching`.
-
-## 📊Benchmark
-
-42 labelled real images (35 from [MRZ-Benchmark](https://github.com/tony-xlh/MRZ-Benchmark) plus the 7 samples in `data/`), exact match of the full MRZ text. The stress set applies 15 perturbations to 40 of them (600 images).
-
-| Test | fastmrz 2.x | fastmrz 3.0 |
-|---|---|---|
-| Clean images, exact match | 27/42 | 41/42 |
-| Clean images, character accuracy | 81.9% | 99.97% |
-| Stress set total | 154/600 (25.7%) | 595/600 (99.2%) |
-| Time per image, average (CPU) | 0.74 s | 0.11 s |
-
-Stress set by perturbation (out of 40):
-
-| Perturbation | 2.x | 3.0 |
-|---|---|---|
-| none | 24 | 40 |
-| rotate 5 / 15 / 30 / 45 deg | 0 / 0 / 0 / 0 | 40 / 40 / 39 / 40 |
-| rotate 90 / 180 / 270 deg | 0 / 0 / 0 | 40 / 39 / 40 |
-| downscale 0.6x | 18 | 40 |
-| blur | 22 | 39 |
-| perspective | 10 | 40 |
-| JPEG quality 20 | 24 | 40 |
-| dark | 17 | 40 |
-| noise | 21 | 39 |
-| small document in a larger scene | 18 | 39 |
-
-Single MRZ lines: 1,034 real lines held out from the Doubango dataset (source images never used in training) are read exactly in 97.1% of cases (character error 0.14%).
-
-Reproduce with `python tools/benchmark.py <image dir> <ground truth json>`.
-
-## 🙌Credits
-
-The recogniser is fine-tuned on the MRZ line dataset of
-[DoubangoTelecom/tesseractMRZ](https://github.com/DoubangoTelecom/tesseractMRZ),
-Copyright (c) 2019, DoubangoTelecom, BSD 3-Clause License. Benchmark images come from
-[tony-xlh/MRZ-Benchmark](https://github.com/tony-xlh/MRZ-Benchmark).
 
 ## 📃Wiki
 

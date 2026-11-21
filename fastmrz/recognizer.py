@@ -15,7 +15,7 @@ _DEFAULT_MODEL = os.path.join(os.path.dirname(os.path.abspath(__file__)), "model
 
 
 def normalize(strip):
-    """Contrast stretch a grey strip to float32 [0, 1] (same as in training)."""
+    """Contrast stretch a grey strip to float32 [0, 1]."""
     strip = strip.astype(np.float32)
     lo, hi = np.percentile(strip, (2, 98))
     if hi - lo < 1:

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/sivakumar-mahalingam/fastmrz/security/advisories/new
+    about: Please report vulnerabilities privately, not in a public issue.
+  - name: Documentation
+    url: https://sivakumar-mahalingam.github.io/fastmrz/
+    about: Check the documentation before opening an issue.

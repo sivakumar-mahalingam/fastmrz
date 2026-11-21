@@ -36,16 +36,14 @@ Complete rewrite of the reading pipeline. The public API is unchanged.
 - `input_type="pdf"` (optional extra: `pip install "fastmrz[pdf]"`)
 - `get_details_batch()` for parallel processing of many documents
 - `get_mrz_image()` returning the rectified MRZ strip
-- `model_path` argument to load a retrained recogniser
+- `model_path` argument to load a custom recogniser
 - Type hints (`py.typed`) and exported `InputType`, `InputData`, `MRZDetails` types
 - `"Invalid date of birth"` / `"Invalid date of expiry"` status messages
-- Training and benchmark tools in `tools/`
 
 ### Changed
 
 - `tesseract_path` and `tessdata_path` are deprecated and ignored (Tesseract removed in v3); passing them raises a `FutureWarning`
 - Dependencies are now `numpy` and `opencv-python-headless>=4.8`
-- Clean-image exact match on the benchmark improved from 27/42 to 41/42; average time per image dropped from 0.74 s to 0.11 s
 
 ### Fixed
 
@@ -148,7 +146,7 @@ Version 3.0 keeps the 2.x API, so existing code runs unchanged:
 
 Version 2.0 introduced significant changes:
 
-1. **ONNX Model**: The extraction pipeline now uses a custom-trained ONNX segmentation model. In 2.x, the `mrz.traineddata` file also had to be installed (no longer needed: removed in v3).
+1. **ONNX Model**: The extraction pipeline now uses an ONNX segmentation model. In 2.x, the `mrz.traineddata` file also had to be installed (no longer needed: removed in v3).
 
 2. **Output Format**: The output dictionary structure may have changed. Check the [API Reference](api-reference.md) for the current format.
 

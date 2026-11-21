@@ -1,0 +1,61 @@
+name: Bug report
+description: Something does not work as expected
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please do not attach real identity documents or personal data; use synthetic or redacted images.
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: What happened, and what did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: A minimal code snippet is ideal.
+      render: python
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Actual output or traceback
+      render: shell
+  - type: input
+    id: version
+    attributes:
+      label: fastmrz version
+      placeholder: "3.0.0"
+    validations:
+      required: true
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+      placeholder: "3.12"
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "Windows 11, Ubuntu 24.04, macOS 15"
+  - type: dropdown
+    id: input_type
+    attributes:
+      label: Input type
+      options:
+        - Image file
+        - Image bytes / array
+        - PDF
+        - Batch
+        - Other
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context

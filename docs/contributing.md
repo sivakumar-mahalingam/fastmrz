@@ -141,10 +141,6 @@ python -m unittest tests.test_fastmrz
 
 **Note:** Tests use the sample images in the `data/` directory. The PDF tests are skipped when PyMuPDF is not installed.
 
-### Training the recogniser
-
-Retraining `fastmrz/model/mrz_rec.onnx` is separate from the package and needs Python 3.13 with the pinned PyTorch build. See `tools/README.md`.
-
 ---
 
 ## Project Structure
@@ -162,7 +158,6 @@ fastmrz/
 │       └── mrz_rec.onnx     # ONNX line recogniser
 ├── tests/
 │   └── test_fastmrz.py      # Unit tests
-├── tools/                   # Recogniser training and benchmark scripts
 ├── data/                    # Sample document images
 ├── docs/                    # Documentation files
 ├── pyproject.toml           # Project configuration
@@ -227,7 +222,6 @@ Based on the project's TODO list, here are some areas where contributions are es
 
 - **Image Enhancement**: Add preprocessing options for low-quality images
 - **Documentation Website**: Help build and maintain the MkDocs site
-- **Recogniser Training Data**: More real MRZ lines in fonts far from OCR-B (see `tools/README.md`)
 
 ### Medium Priority
 

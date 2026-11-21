@@ -83,7 +83,7 @@ The strips are contrast-stretched and passed in a single batch to the recogniser
 
 - **Architecture:** fully convolutional network with a CTC output over the 37 MRZ characters (`0-9`, `A-Z`, `<`)
 - **Size:** 2.4 MB, run through OpenCV's DNN module, so no extra ML runtime is needed
-- **Training:** synthetic lines in OCR-B plus 16 other fonts, fine-tuned on about 5,800 real MRZ lines (see `tools/README.md`)
+- **Data:** trained on synthetically generated MRZ lines
 
 Greedy CTC decoding returns, for each line, the text, a probability vector for every character, and a confidence score. Those per-character alternatives drive the repair step.
 
