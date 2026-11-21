@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "fastmrz"
-version = "2.1"
+version = "3.0.0"
 description = "Extracts the Machine Readable Zone (MRZ) data from document images"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -45,9 +45,12 @@ keywords = [
     "onnx"
 ]
 dependencies = [
-    "opencv-python-headless>=4.11.0.86",
-    "pytesseract>=0.3.10",
+    "numpy",
+    "opencv-python-headless>=4.8",
 ]
+
+[project.optional-dependencies]
+pdf = ["pymupdf>=1.23"]
 
 [project.urls]
 Homepage = "https://github.com/sivakumar-mahalingam/fastmrz/"
@@ -65,7 +68,6 @@ include = [
     "fastmrz",
     "tests",
     "docs",
-    "tessdata",
     "data",
     "README.md",
     "LICENSE",

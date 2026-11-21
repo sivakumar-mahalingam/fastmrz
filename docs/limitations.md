@@ -1,179 +1,60 @@
 # Limitations
 
-This document outlines the current limitations and known issues of FastMRZ.
+This document outlines the current limitations and known issues of FastMRZ 3.
 
 ---
 
-## Image Processing Limitations
+## Recognition Limitations
 
-### Resolution Sensitivity
+### Known misses
 
-The ONNX segmentation model resizes all input images to **256x256 pixels** before inference. This fixed resolution may cause issues:
+On the benchmark (42 clean real images, 600 perturbed ones), FastMRZ 3 reads 41/42 clean images and 595/600 perturbed ones exactly. Known weak spots:
 
-- **Very low-resolution images**: MRZ text may become unreadable after downscaling
-- **Very high-resolution images**: Fine details may be lost during resizing
+- **Non-standard line length:** the one clean miss is a sample document that prints a 43-character line. The output is padded to the standard 44.
+- **Look-alike characters without a check digit:** `0`/`O`, `0`/`D` and `O`/`Q` in names, optional data or alphanumeric document numbers depend purely on the glyph shape. Fonts far from OCR-B are less reliable there. Fields with a check digit are repaired automatically.
+- **Very small print:** MRZ characters smaller than about 8 px high are not readable.
 
-**Recommendation:** Use images with a resolution where the MRZ region is clearly visible but not excessively large (recommended: 1000-2000 pixels wide).
+**Recommendation:** capture the document so the MRZ is reasonably sharp and its characters are at least ~10 px tall. Rotation, perspective, moderate blur, JPEG compression, dim lighting and noise are handled.
 
-### Image Quality Dependence
+### No confidence scores
 
-OCR accuracy depends heavily on image quality:
+The recogniser's confidence is used internally to choose between readings, but it is not exposed. Readings that are too uncertain are rejected and reported as `"No MRZ detected"` instead of returned.
 
-- **Blurry images**: May result in failed MRZ detection or incorrect character recognition
-- **Poor lighting**: Shadows, glare, or uneven lighting can obscure the MRZ region
-- **Low contrast**: MRZ text must have sufficient contrast against the background
-- **Skewed documents**: While the contour detection handles some skew, extreme angles may cause detection failure
+### One MRZ per image
 
-**Recommendation:** Capture documents in well-lit conditions with the camera parallel to the document surface.
-
-### No Image Enhancement
-
-FastMRZ does not currently include automatic image enhancement:
-
-- No automatic brightness/contrast adjustment
-- No automatic deskew correction
-- No noise reduction beyond basic morphological operations
-- No super-resolution for low-quality images
-
-**Workaround:** Pre-process images using OpenCV or other libraries before passing them to FastMRZ:
-
-```python
-import cv2
-import numpy as np
-from fastmrz import FastMRZ
-
-fast_mrz = FastMRZ()
-
-# Load and enhance image
-image = cv2.imread("passport.jpg")
-
-# Convert to grayscale
-gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-# Apply sharpening
-kernel = np.array([[-1, -1, -1],
-                   [-1,  9, -1],
-                   [-1, -1, -1]])
-sharpened = cv2.filter2D(gray, -1, kernel)
-
-# Apply adaptive thresholding
-binary = cv2.adaptiveThreshold(
-    sharpened, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-    cv2.THRESH_BINARY, 11, 2
-)
-
-# Convert back to 3-channel for FastMRZ
-enhanced = cv2.cvtColor(binary, cv2.COLOR_GRAY2BGR)
-
-result = fast_mrz.get_details(enhanced, input_type="numpy")
-```
+If an image contains several MRZs (e.g. a scanned page with multiple documents), only the best-scoring one is returned. For PDFs, only the first page (of up to 10) with an MRZ is used.
 
 ---
 
 ## Feature Limitations
 
-### No PDF Support
-
-PDF input is not yet implemented. The `input_type="pdf"` parameter exists in the code but is non-functional.
-
-**Workaround:** Convert PDFs to images before processing:
-
-```python
-# Using PyMuPDF (fitz)
-import fitz
-
-doc = fitz.open("document.pdf")
-for page_num in range(len(doc)):
-    page = doc[page_num]
-    pix = page.get_pixmap(dpi=300)
-    pix.save(f"page_{page_num}.png")
-    result = fast_mrz.get_details(f"page_{page_num}.png")
-```
-
-### No Bulk Processing
-
-FastMRZ processes one document at a time. There is no built-in batch processing functionality.
-
-**Workaround:** Implement your own loop:
-
-```python
-import os
-from fastmrz import FastMRZ
-
-fast_mrz = FastMRZ()
-results = {}
-
-for filename in os.listdir("documents/"):
-    if filename.endswith((".jpg", ".png")):
-        filepath = os.path.join("documents/", filename)
-        results[filename] = fast_mrz.get_details(filepath)
-```
-
 ### No Face Extraction
 
-FastMRZ does not extract the photograph from the document. It only extracts the MRZ text region.
+FastMRZ does not extract the photograph from the document. It only reads the MRZ.
 
 ### No MRZ Generation
 
 FastMRZ cannot generate MRZ text from structured data. It only parses existing MRZ text.
 
-### No `get_mrz_image` Function
+### Text input is not auto-corrected
 
-The ability to extract and return the cropped MRZ image region is not implemented.
+`input_type="text"` parses the MRZ exactly as given. The check-digit guided repair only applies to images, where the recogniser's per-character alternatives are known.
 
----
+### PDF input needs an extra
 
-## Model Limitations
-
-### Single ONNX Model
-
-FastMRZ uses a single segmentation model (`mrz_seg.onnx`) trained on a specific dataset:
-
-- The model may not generalize well to all document types or layouts
-- Documents with unusual MRZ placements may not be detected
-- The model was trained on 256x256 images, which limits its resolution handling
-
-### No Confidence Scores
-
-The model output is thresholded at 0.25, but confidence scores are not exposed to the user. There is no way to know how confident the model is about its detection.
-
-### No Multi-Region Detection
-
-If a document contains multiple MRZ regions (e.g., a scanned page with multiple passports), only the largest detected region is processed.
-
----
-
-## OCR Limitations
-
-### Tesseract Dependency
-
-FastMRZ relies on Tesseract OCR, which has its own limitations:
-
-- Requires external installation (not bundled with the package)
-- Requires manual installation of the custom `mrz.traineddata` file
-- Tesseract accuracy varies with font, size, and image quality
-- Some characters may be confused (e.g., `0` vs `O`, `1` vs `I`)
-
-### Custom Trained Data Required
-
-The custom `mrz.traineddata` file must be manually copied to the Tesseract tessdata folder. Without it, OCR accuracy will be significantly lower.
-
-### Limited Language Support
-
-The MRZ trained data is optimized for the restricted MRZ character set (A-Z, 0-9, `<`). It is not suitable for general text recognition.
+`input_type="pdf"` requires PyMuPDF (`pip install "fastmrz[pdf]"`). Pages are rendered at 200 dpi.
 
 ---
 
 ## Validation Limitations
 
-### Checksum Validation Only
+### Checksum and format validation only
 
-FastMRZ validates check digits but does not validate:
+FastMRZ validates the format, dates and check digits, but does not validate:
 
-- Country code authenticity (any 3-letter code is accepted)
+- Country code authenticity (unknown codes lower a reading's score, but are not reported as errors)
 - Document number format validity
-- Date reasonableness (e.g., future birth dates are not flagged)
-- Document expiry status (expired documents are still parsed)
+- Document expiry status (expired documents are still parsed and reported as `SUCCESS`)
 
 ### No Cross-Field Validation
 
@@ -183,9 +64,9 @@ There is no validation that checks relationships between fields:
 - Document code vs. document type consistency
 - Optional data format validation
 
-### Incomplete Check Digit Status
+### First problem only
 
-Not all check digit statuses are fully implemented. The TODO list indicates this is a planned improvement.
+When validation fails, `status_message` names the first problem found, not every failing check digit.
 
 ---
 
@@ -194,6 +75,7 @@ Not all check digit statuses are fully implemented. The TODO list indicates this
 ### Operating System Support
 
 FastMRZ is tested on:
+
 - macOS
 - Linux (POSIX)
 - Windows 10/11
@@ -202,11 +84,11 @@ Other platforms (e.g., mobile, embedded systems) are not officially supported.
 
 ### Python Version
 
-Requires Python 3.8 or higher. Older versions are not supported.
+Requires Python 3.8 or higher. Retraining the recogniser (`tools/`) is separate and needs Python 3.13.
 
 ### Architecture
 
-The ONNX model is run via OpenCV's DNN module, which may have different performance characteristics on different CPU architectures (x86, ARM, etc.).
+The ONNX recogniser is run via OpenCV's DNN module, which may have different performance characteristics on different CPU architectures (x86, ARM, etc.).
 
 ---
 
@@ -216,9 +98,9 @@ The ONNX model is run via OpenCV's DNN module, which may have different performa
 
 FastMRZ does not encrypt data in memory or during processing. MRZ data contains sensitive personal information.
 
-### No Input Sanitization
+### No Redaction
 
-The package does not sanitize or redact MRZ data in logs or error messages.
+The package does not sanitize or redact MRZ data in its return values. Take care when logging results.
 
 ### AGPL License
 
@@ -226,20 +108,27 @@ FastMRZ is licensed under AGPL-3.0. If you modify and distribute the software (o
 
 ---
 
+## Resolved in v3
+
+These limitations of 2.x no longer apply:
+
+- **Tesseract dependency:** removed in v3. There is no system dependency and no `mrz.traineddata` to install.
+- **Rotated or skewed images:** detection works at any rotation, skew and perspective.
+- **Fixed 256x256 segmentation crop:** replaced by multi-scale line detection.
+- **No PDF support:** `input_type="pdf"`.
+- **No bulk processing:** `get_details_batch()`.
+- **No `get_mrz_image`:** implemented.
+- **Valid MRZs reported as invalid:** check rules now follow ICAO 9303 (e.g. `<` as an empty optional-data check digit).
+
+---
+
 ## Planned Improvements
 
-The following improvements are tracked in the project's TODO list:
-
-- [ ] PDF input support
-- [ ] Bulk/batch processing
 - [ ] Image enhancement model parameter
 - [ ] Text image enhancement model
-- [ ] Improved Tesseract model training
-- [ ] `get_mrz_image` function
 - [ ] `generate_mrz` function
 - [ ] Face image extraction
 - [ ] Complete check digit status reporting
-- [ ] Documentation website
 
 ---
 
