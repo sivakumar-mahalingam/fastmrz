@@ -2,4 +2,4 @@
 numpy
 opencv-python-headless>=4.8
 # optional, for PDF input:
-# pymupdf>=1.23
+# pymupdf>=1.23,!=1.26.5,!=1.26.6

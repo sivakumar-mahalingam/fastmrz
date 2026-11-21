@@ -65,7 +65,7 @@ Comprehensive documentation is available at the [FastMRZ Documentation Site](htt
 | Python | 3.8 or newer | 3.8, 3.9, 3.10, 3.11, 3.12, 3.13 |
 | numpy | any version that matches your OpenCV | 1.24.4 to 2.5.5 |
 | opencv-python-headless | 4.8 or newer | 4.8.1, 5.0.0, 5.1.0 |
-| PyMuPDF (optional, PDF input only) | 1.23 or newer | 1.23.26, 1.24.11, 1.26.5, 2.1 |
+| PyMuPDF (optional, PDF input only) | 1.23 or newer, except 1.26.5 and 1.26.6 (security advisory) | 1.23.26, 1.24.11, 1.26.4, 2.1 |
 
 No Tesseract, PyTorch or GPU needed. Retraining the model (`tools/`) is separate and needs Python 3.13, see [`tools/README.md`](tools/README.md).
 

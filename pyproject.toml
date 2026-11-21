@@ -50,7 +50,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-pdf = ["pymupdf>=1.23"]
+# 1.26.5 and 1.26.6 are affected by GHSA-cxqh-p2w9-fmr7 (path traversal, fixed in 1.26.7)
+pdf = ["pymupdf>=1.23,!=1.26.5,!=1.26.6"]
 
 [project.urls]
 Homepage = "https://github.com/sivakumar-mahalingam/fastmrz/"

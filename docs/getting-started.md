@@ -11,7 +11,7 @@ This guide covers installing FastMRZ and checking that it works.
 | Python | 3.8 or newer | 3.8, 3.9, 3.10, 3.11, 3.12, 3.13 |
 | numpy | any version that matches your OpenCV | 1.24.4 to 2.5.5 |
 | opencv-python-headless | 4.8 or newer | 4.8.1, 5.0.0, 5.1.0 |
-| PyMuPDF (optional, PDF input only) | 1.23 or newer | 1.23.26, 1.24.11, 1.26.5, 2.1 |
+| PyMuPDF (optional, PDF input only) | 1.23 or newer, except 1.26.5 and 1.26.6 (security advisory) | 1.23.26, 1.24.11, 1.26.4, 2.1 |
 
 FastMRZ is pure Python. It needs no system packages, no PyTorch and no GPU: the MRZ recogniser is a 2.4 MB ONNX model that ships inside the package and runs through OpenCV.
 
@@ -121,7 +121,7 @@ fast_mrz = FastMRZ()
 |---------|---------|---------|
 | `numpy` | any matching OpenCV | Image arrays |
 | `opencv-python-headless` | >= 4.8 | Image processing, MRZ detection, ONNX inference (`cv2.dnn`) |
-| `pymupdf` (extra `pdf`) | >= 1.23 | PDF rendering, only for `input_type="pdf"` |
+| `pymupdf` (extra `pdf`) | >= 1.23, != 1.26.5, != 1.26.6 | PDF rendering, only for `input_type="pdf"` |
 
 The required packages are installed automatically by pip.
 

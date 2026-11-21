@@ -60,23 +60,24 @@ def docno(n=9):
 def text():
     r = random.random()
     c3 = lambda: rs(3, L) if random.random() < .9 else rs(1, L) + "<<"
-    sex = lambda: random.choice("MFMF<X")
+    # random M/F/X/< character for the synthetic lines; no real personal data
+    mfx = lambda: random.choice("MFMF<X")
     if r < .14:   # TD3 l1
         return random.choice(["P<", "P<", "PA", "PP", "PD", "PM", "PO", "PS", "V<", "VN"]) + c3() + name(39)
     if r < .30:   # TD3/MRVA l2
-        return docno() + rs(1, D) + c3() + rs(7, D) + sex() + rs(7, D) + opt(14) + random.choice([rs(2, D), "<" + rs(1, D), "<<"])
+        return docno() + rs(1, D) + c3() + rs(7, D) + mfx() + rs(7, D) + opt(14) + random.choice([rs(2, D), "<" + rs(1, D), "<<"])
     if r < .36:   # TD2 l1
         return random.choice(["I<", "ID", "A<", "C<", "IP", "V<", "AC"]) + c3() + name(31)
     if r < .43:   # TD2 l2
-        return docno() + rs(1, D) + c3() + rs(7, D) + sex() + rs(7, D) + opt(7) + random.choice([rs(1, D), "<"])
+        return docno() + rs(1, D) + c3() + rs(7, D) + mfx() + rs(7, D) + opt(7) + random.choice([rs(1, D), "<"])
     if r < .51:   # TD1 l1
         return random.choice(["I<", "ID", "A<", "C<", "IR", "AR", "CR", "IO", "I" + rs(1, L)]) + c3() + docno() + random.choice([rs(1, D), "<"]) + opt(15)
     if r < .59:   # TD1 l2
-        return rs(7, D) + sex() + rs(7, D) + c3() + opt(11) + rs(1, D)
+        return rs(7, D) + mfx() + rs(7, D) + c3() + opt(11) + rs(1, D)
     if r < .66:   # TD1 l3
         return name(30)
     if r < .70:   # French old ID
-        return ("IDFRA" + name(25) + rs(6, D + "<")) if random.random() < .5 else (rs(12, D) + rs(1, D) + name(14) + rs(7, D) + sex() + rs(1, D))
+        return ("IDFRA" + name(25) + rs(6, D + "<")) if random.random() < .5 else (rs(12, D) + rs(1, D) + name(14) + rs(7, D) + mfx() + rs(1, D))
     # random strings, random runs
     n = random.choice([30, 36, 44, 30, 36, 44, random.randint(18, 48)])
     out = ""
