@@ -21,7 +21,7 @@ resolution-markers = [
 
 [[package]]
 name = "fastmrz"
-version = "3.1.0"
+version = "3.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "numpy", version = "1.24.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },

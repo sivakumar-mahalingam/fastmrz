@@ -102,10 +102,6 @@ FastMRZ does not encrypt data in memory or during processing. MRZ data contains 
 
 The package does not sanitize or redact MRZ data in its return values. Take care when logging results.
 
-### AGPL License
-
-FastMRZ is licensed under AGPL-3.0. If you modify and distribute the software (or use it in a network service), you must make your modifications available under the same license.
-
 ---
 
 ## Resolved in v3
