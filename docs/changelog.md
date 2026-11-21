@@ -18,7 +18,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
-## [3.0.0] - Unreleased
+## [3.1.0] - 2026-11-21
+
+PDF support by default and an updated recogniser model, plus documentation and repository cleanup (#41). The public API is unchanged.
+
+### Added
+
+- Security policy (`.github/SECURITY.md`) with private vulnerability reporting
+- Issue templates for bug reports, feature requests, improvements and blank issues, and a pull request template
+
+### Changed
+
+- PDF support is installed by default: `pymupdf` is now a regular dependency, so `pip install fastmrz` is enough for `input_type="pdf"`. The `pdf` extra is kept as an empty alias, so `pip install "fastmrz[pdf]"` keeps working
+- Updated recogniser model (`fastmrz/model/mrz_rec.onnx`, now 2.5 MB), trained on synthetic MRZ data
+- Version bumped to 3.1.0 in `pyproject.toml`, `fastmrz/__init__.py` and `uv.lock`
+
+### Removed
+
+- The `tools/` folder and all references to it from the README, docs, tests and `.gitignore`
+- The bundled ICAO Doc 9303 PDFs (`docs/9303_p*_cons_en.pdf`); the docs link to the official [ICAO Doc 9303](https://www.icao.int/publications/pages/publication.aspx?docnum=9303) page instead
+
+---
+
+## [3.0.0] - 2026-11-21
 
 Complete rewrite of the reading pipeline. The public API is unchanged.
 
@@ -118,7 +140,8 @@ Complete rewrite of the reading pipeline. The public API is unchanged.
 
 | Version | Release Date | Key Features |
 |---------|--------------|--------------|
-| 3.0.0 | Unreleased | Tesseract removed, built-in ONNX recogniser, PDF and batch input |
+| 3.1.0 | 2026-11-21 | PDF support by default, updated recogniser model, security policy, issue and PR templates |
+| 3.0.0 | 2026-11-21 | Tesseract removed, built-in ONNX recogniser, PDF and batch input |
 | 2.1 | 2024 | MRVA/MRVB support, validation, multiple input formats |
 | 2.0 | 2024 | ONNX model, complete pipeline rewrite |
 | 1.0 | - | Initial MRZ extraction |
@@ -140,7 +163,7 @@ Version 3.0 keeps the 2.x API, so existing code runs unchanged:
 
 3. **Output:** the same keys and `status` / `status_message` values. Invalid dates are now reported (`"Invalid date of birth"`, `"Invalid date of expiry"`) and returned as the raw `YYMMDD`.
 
-4. **PDF input:** install the extra with `pip install "fastmrz[pdf]"`.
+4. **PDF input:** supported out of the box since 3.1.0 (in 3.0.0 it needed `pip install "fastmrz[pdf]"`).
 
 ### From 1.x to 2.x
 
@@ -167,7 +190,7 @@ Version 2.1 is backward compatible with 2.0. New features are additive:
 Releases are published to PyPI. To install a specific version:
 
 ```bash
-pip install fastmrz==3.0.0
+pip install fastmrz==3.1.0
 ```
 
 ---

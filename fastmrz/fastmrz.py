@@ -129,14 +129,14 @@ class FastMRZ:
 
     @staticmethod
     def _pdf_pages(input_data, dpi=200, max_pages=10):
-        """Render PDF pages (path or bytes) to grey images. Needs ``pip install pymupdf``."""
+        """Render PDF pages (path or bytes) to grey images with PyMuPDF."""
         try:
             import pymupdf
         except ImportError:
             try:
                 import fitz as pymupdf    # PyMuPDF < 1.24 only provides the "fitz" name
             except ImportError:
-                raise ValueError("PDF input needs PyMuPDF: pip install fastmrz[pdf]")
+                raise ValueError("PDF input needs PyMuPDF: pip install pymupdf")
         try:
             if isinstance(input_data, (bytes, bytearray)):
                 doc = pymupdf.open(stream=bytes(input_data), filetype="pdf")
@@ -256,7 +256,7 @@ class FastMRZ:
                 - ``"base64"``: base64 encoded image file, ``data:`` URIs allowed
                 - ``"bytes"``: encoded image file (JPEG, PNG, ...)
                 - ``"pdf"``: path or bytes of a PDF; the first page (of up to 10)
-                  with an MRZ is used. Needs ``pip install fastmrz[pdf]``.
+                  with an MRZ is used.
                 - ``"text"``: MRZ text with lines separated by newlines; only parsed,
                   never auto-corrected
             ignore_parse: Return the raw MRZ text instead of the parsed fields.

@@ -21,17 +21,13 @@ resolution-markers = [
 
 [[package]]
 name = "fastmrz"
-version = "3.0.0"
+version = "3.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "numpy", version = "1.24.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
     { name = "numpy", version = "2.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.9.*'" },
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "opencv-python-headless" },
-]
-
-[package.optional-dependencies]
-pdf = [
     { name = "pymupdf", version = "1.24.11", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
     { name = "pymupdf", version = "1.28.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.10.*'" },
     { name = "pymupdf", version = "2.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
@@ -41,7 +37,7 @@ pdf = [
 requires-dist = [
     { name = "numpy" },
     { name = "opencv-python-headless", specifier = ">=4.8" },
-    { name = "pymupdf", marker = "extra == 'pdf'", specifier = ">=1.23,!=1.26.5,!=1.26.6" },
+    { name = "pymupdf", specifier = ">=1.23,!=1.26.5,!=1.26.6" },
 ]
 provides-extras = ["pdf"]
 

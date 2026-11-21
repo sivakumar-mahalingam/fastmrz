@@ -17,7 +17,7 @@ FastMRZ provides a lightweight, efficient, and easy-to-use implementation that s
 ## Key Features
 
 - **MRZ Detection**: Finds the MRZ at any rotation, skew or perspective
-- **Built-in ONNX Recogniser**: A 2.4 MB model run through OpenCV reads each MRZ line (replacing Tesseract, which was removed in v3); no GPU needed
+- **Built-in ONNX Recogniser**: A 2.5 MB model run through OpenCV reads each MRZ line (replacing Tesseract, which was removed in v3); no GPU needed
 - **Built-in Validation**: Comprehensive checksum logic verifies extracted data, and misread characters are repaired using the check digits
 - **Multiple Input Formats**: Accepts image paths, NumPy arrays, Base64 strings, encoded bytes, PDFs, or raw MRZ text
 - **Batch Processing**: `get_details_batch` reads many documents in parallel
@@ -86,7 +86,7 @@ print(json.dumps(result, indent=4))
 
 ## Requirements
 
-FastMRZ is pure Python: the only dependencies are `numpy` and `opencv-python-headless`, plus optional `pymupdf` for PDF input. No system packages are needed. Tesseract OCR, required up to 2.x, was removed in v3. See the [Installation Guide](getting-started.md) for details.
+FastMRZ is pure Python: the only dependencies are `numpy`, `opencv-python-headless` and `pymupdf` (for PDF input). No system packages are needed. Tesseract OCR, required up to 2.x, was removed in v3. See the [Installation Guide](getting-started.md) for details.
 
 ---
 
