@@ -191,11 +191,7 @@ with open("passport.jpg", "rb") as f:
 
 Pass a PDF path or the PDF bytes. Up to the first 10 pages are rendered at 200 dpi, and the first page with an MRZ is used.
 
-PDF input needs [PyMuPDF](https://pymupdf.readthedocs.io/):
-
-```bash
-pip install "fastmrz[pdf]"
-```
+PDF rendering uses [PyMuPDF](https://pymupdf.readthedocs.io/), which is installed with FastMRZ.
 
 ```python
 from fastmrz import FastMRZ
@@ -208,7 +204,7 @@ with open("scan.pdf", "rb") as f:
     result = fast_mrz.get_details(f.read(), input_type="pdf")
 ```
 
-Without PyMuPDF, `ValueError("PDF input needs PyMuPDF: pip install fastmrz[pdf]")` is raised.
+If PyMuPDF has been uninstalled, `ValueError("PDF input needs PyMuPDF: pip install pymupdf")` is raised.
 
 ---
 
@@ -268,7 +264,7 @@ Inputs that cannot be read raise `ValueError` before any processing:
 | `numpy` | Non-empty `ndarray` with 1, 3 or 4 channels | `Input is not a valid NumPy array.` / `Input is not a valid image.` |
 | `base64` | Valid Base64 that decodes to an image | `Input is not a valid base64 string.` / `Input is not a valid image.` |
 | `bytes` | Decodes to an image | `Input is not a valid image.` |
-| `pdf` | PyMuPDF installed, valid PDF | `PDF input needs PyMuPDF: pip install fastmrz[pdf]` / `Input is not a valid PDF.` |
+| `pdf` | Valid PDF | `Input is not a valid PDF.` / `PDF input needs PyMuPDF: pip install pymupdf` |
 | `text` | None at input stage | Format and checksums are reported in `status_message` |
 
 `get_details_batch()` does not raise for unreadable inputs: their entries become `{"status": "FAILURE", "status_message": <message>}`.

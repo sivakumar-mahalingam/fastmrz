@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "fastmrz"
-version = "3.0.0"
+version = "3.1.0"
 description = "Extracts the Machine Readable Zone (MRZ) data from document images"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -47,11 +47,13 @@ keywords = [
 dependencies = [
     "numpy",
     "opencv-python-headless>=4.8",
+    # 1.26.5 and 1.26.6 are affected by GHSA-cxqh-p2w9-fmr7 (path traversal, fixed in 1.26.7)
+    "pymupdf>=1.23,!=1.26.5,!=1.26.6",
 ]
 
 [project.optional-dependencies]
-# 1.26.5 and 1.26.6 are affected by GHSA-cxqh-p2w9-fmr7 (path traversal, fixed in 1.26.7)
-pdf = ["pymupdf>=1.23,!=1.26.5,!=1.26.6"]
+# PDF support is installed by default since 3.1.0; kept so "fastmrz[pdf]" still resolves
+pdf = []
 
 [project.urls]
 Homepage = "https://github.com/sivakumar-mahalingam/fastmrz/"

@@ -129,10 +129,7 @@ class TestImages(unittest.TestCase):
         try:
             import pymupdf
         except ImportError:
-            try:
-                import fitz as pymupdf
-            except ImportError:
-                self.skipTest("PyMuPDF not installed")
+            import fitz as pymupdf    # PyMuPDF < 1.24 only provides the "fitz" name
         path = DATA_DIR / "passport_uk.jpg"
         doc = pymupdf.open()
         blank = doc.new_page()

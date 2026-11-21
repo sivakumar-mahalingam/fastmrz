@@ -39,7 +39,7 @@ This document explains the internal architecture and processing pipeline of Fast
 |---|---|
 | Detect | Classical CV (blackhat, local contrast, morphological closing) finds 2-3 parallel text lines of equal length. Works at any rotation (with extra diagonal passes), skew and perspective. |
 | Rectify | Each line is perspective-warped to a 32 x 640 strip, in both reading directions. |
-| Recognise | A 2.4 MB fully convolutional CTC network (ONNX, run through `cv2.dnn`) reads the whole line at once and returns per-character probabilities. |
+| Recognise | A 2.5 MB fully convolutional CTC network (ONNX, run through `cv2.dnn`) reads the whole line at once and returns per-character probabilities. |
 | Repair | Line length is fitted to the format, positional character sets are enforced, and failing check digits may trigger a few substitutions among the recogniser's own second choices. |
 | Select | Candidates are scored by check digits, date validity, known ICAO country codes, confidence and number of repairs. |
 
@@ -82,7 +82,7 @@ Each line quadrilateral is refined and perspective-warped (`warp_line`) to a 32 
 The strips are contrast-stretched and passed in a single batch to the recogniser (`fastmrz/model/mrz_rec.onnx`):
 
 - **Architecture:** fully convolutional network with a CTC output over the 37 MRZ characters (`0-9`, `A-Z`, `<`)
-- **Size:** 2.4 MB, run through OpenCV's DNN module, so no extra ML runtime is needed
+- **Size:** 2.5 MB, run through OpenCV's DNN module, so no extra ML runtime is needed
 - **Data:** trained on synthetically generated MRZ lines
 
 Greedy CTC decoding returns, for each line, the text, a probability vector for every character, and a confidence score. Those per-character alternatives drive the repair step.
@@ -193,7 +193,7 @@ Inputs that cannot be read at all (missing file, undecodable image, bad base64, 
 - **Model loading:** the ONNX model is read once in `FastMRZ()`. Each thread gets its own OpenCV network, so one instance can be shared across threads.
 - **Speed:** about 0.11 s per image on average on a CPU. Most images are settled by the first detector stage.
 - **Batching:** `get_details_batch` processes inputs on a thread pool (up to 8 workers by default).
-- **Minimal dependencies:** only `numpy` and `opencv-python-headless`, plus optional `pymupdf` for PDFs.
+- **Minimal dependencies:** only `numpy`, `opencv-python-headless` and `pymupdf` (for PDFs).
 
 ---
 

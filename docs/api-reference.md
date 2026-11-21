@@ -110,7 +110,7 @@ result = fast_mrz.get_details(b64, input_type="base64")
 with open("passport.jpg", "rb") as f:
     result = fast_mrz.get_details(f.read(), input_type="bytes")
 
-# From a PDF (needs: pip install "fastmrz[pdf]")
+# From a PDF
 result = fast_mrz.get_details("scan.pdf", input_type="pdf")
 
 # From raw MRZ text
@@ -400,7 +400,7 @@ Inputs that cannot be read raise `ValueError` with a descriptive message:
 | `numpy` | `Input is not a valid NumPy array.` / `Input is not a valid image.` (empty or wrong shape) |
 | `base64` | `Input is not a valid base64 string.` / `Input is not a valid image.` |
 | `bytes` | `Input is not a valid image.` |
-| `pdf` | `Input is not a valid PDF.` / `PDF input needs PyMuPDF: pip install fastmrz[pdf]` |
+| `pdf` | `Input is not a valid PDF.` / `PDF input needs PyMuPDF: pip install pymupdf` (only if PyMuPDF was uninstalled) |
 | anything else | `Unsupported input_type: <value>` |
 
 ---

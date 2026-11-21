@@ -40,9 +40,9 @@ FastMRZ cannot generate MRZ text from structured data. It only parses existing M
 
 `input_type="text"` parses the MRZ exactly as given. The check-digit guided repair only applies to images, where the recogniser's per-character alternatives are known.
 
-### PDF input needs an extra
+### PDF rendering
 
-`input_type="pdf"` requires PyMuPDF (`pip install "fastmrz[pdf]"`). Pages are rendered at 200 dpi.
+`input_type="pdf"` renders up to the first 10 pages at 200 dpi.
 
 ---
 

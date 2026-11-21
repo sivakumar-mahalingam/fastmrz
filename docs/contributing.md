@@ -44,7 +44,7 @@ Actual: {'status': 'FAILURE', 'status_message': 'No MRZ detected'}
 Environment:
 - OS: Ubuntu 22.04
 - Python: 3.10
-- FastMRZ: 3.0.0
+- FastMRZ: 3.1.0
 - OpenCV: 4.10.0
 ```
 
@@ -104,8 +104,8 @@ No system packages are needed (Tesseract was removed in v3).
     python -m venv venv
     source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-    # Install in editable mode, with the optional PDF extra
-    pip install -e ".[pdf]"
+    # Install in editable mode
+    pip install -e .
     ```
 
 === "Using uv (recommended)"
@@ -114,9 +114,9 @@ No system packages are needed (Tesseract was removed in v3).
     git clone https://github.com/YOUR_USERNAME/fastmrz.git
     cd fastmrz
 
-    # Create the environment from uv.lock, with the optional PDF extra
-    uv sync --extra pdf
-    source .venv/bin/activate  # On Windows: .venv\Scriptsctivate
+    # Create the environment from uv.lock
+    uv sync
+    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
     ```
 
 === "Using conda"
@@ -129,8 +129,8 @@ No system packages are needed (Tesseract was removed in v3).
     conda create -n fastmrz-dev python=3.11
     conda activate fastmrz-dev
 
-    # Install in editable mode, with the optional PDF extra
-    pip install -e ".[pdf]"
+    # Install in editable mode
+    pip install -e .
     ```
 
 ### Running Tests
@@ -139,7 +139,7 @@ No system packages are needed (Tesseract was removed in v3).
 python -m unittest tests.test_fastmrz
 ```
 
-**Note:** Tests use the sample images in the `data/` directory. The PDF tests are skipped when PyMuPDF is not installed.
+**Note:** Tests use the sample images in the `data/` directory.
 
 ---
 

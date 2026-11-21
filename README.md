@@ -13,7 +13,7 @@
 </a>
 
 FastMRZ is an open-source Python package that extracts the Machine Readable Zone (MRZ) from passports, ID cards and visas. It accepts an image path, NumPy array, Base64 string, encoded image bytes, PDF or MRZ string.
-Pure Python, no Tesseract: the only dependencies are `numpy` and `opencv-python-headless`.
+Pure Python, no Tesseract: the only dependencies are `numpy`, `opencv-python-headless` and `pymupdf`.
 
 [Features](#features) •
 [Built With](#built-with) •
@@ -45,7 +45,7 @@ Comprehensive documentation is available at the [FastMRZ Documentation Site](htt
 ## ️✨Features
 
 - 👁️Detects and extracts the MRZ region from document images, at any rotation, skew or perspective
-- 🎨Built-in 2.4 MB ONNX recogniser, trained on synthetic MRZ data and run through OpenCV: no Tesseract or GPU needed
+- 🎨Built-in 2.5 MB ONNX recogniser, trained on synthetic MRZ data and run through OpenCV: no Tesseract or GPU needed
 - 🆗Check digits validated per ICAO 9303, with automatic repair of misread characters
 - 📄Image path, NumPy array, Base64, bytes, PDF and MRZ text input; parallel batch processing
 - 📤Outputs the extracted MRZ as text or a parsed dict
@@ -64,7 +64,7 @@ Comprehensive documentation is available at the [FastMRZ Documentation Site](htt
 | Python | 3.8 or newer | 3.8, 3.9, 3.10, 3.11, 3.12, 3.13 |
 | numpy | any version that matches your OpenCV | 1.24.4 to 2.5.5 |
 | opencv-python-headless | 4.8 or newer | 4.8.1, 5.0.0, 5.1.0 |
-| PyMuPDF (optional, PDF input only) | 1.23 or newer, except 1.26.5 and 1.26.6 (security advisory) | 1.23.26, 1.24.11, 1.26.4, 2.1 |
+| PyMuPDF (PDF input) | 1.23 or newer, except 1.26.5 and 1.26.6 (security advisory) | 1.23.26, 1.24.11, 1.26.4, 2.1 |
 
 No Tesseract, PyTorch or GPU needed.
 
@@ -72,10 +72,9 @@ No Tesseract, PyTorch or GPU needed.
 
 ```bash
 pip install fastmrz
-pip install "fastmrz[pdf]"     # optional: PDF input (PyMuPDF)
 ```
 
-From a clone of this repository: `pip install .` or `pip install ".[pdf]"`.
+PDF support is included; no extra is needed. From a clone of this repository: `pip install .`.
 
 > **Upgrading from 2.x:** Tesseract and `mrz.traineddata` were removed in v3; you no longer need to install them.
 
@@ -140,7 +139,7 @@ Type hints are included (`py.typed`), so editors and type checkers see the types
 | `"numpy"` | Image array, BGR colour or greyscale |
 | `"base64"` | Base64 encoded image file; `data:image/...;base64,` prefix allowed |
 | `"bytes"` | Encoded image file (JPEG, PNG, ...) |
-| `"pdf"` | Path or bytes of a PDF; first page (of up to 10) with an MRZ. Needs `pip install "fastmrz[pdf]"` |
+| `"pdf"` | Path or bytes of a PDF; first page (of up to 10) with an MRZ |
 | `"text"` | MRZ text, lines separated by `\n`; parsed only, never auto-corrected |
 
 ### Output fields
@@ -209,13 +208,10 @@ Now, based on the example of a national passport, let us take a closer look at t
 - [x] Add documentation page
 - [x] Support pdf as input
 - [x] Bulk process
-- [ ] Add function parameter - Image Enhancement Model
-- [ ] Add function parameter - Text Image Enhancement Model
 - [x] Replace Tesseract with a built-in ONNX recogniser (Tesseract removed in v3)
 - [x] Add function parameter - include_checkdigit
 - [x] Add function - get_mrz_image
 - [x] Add function - validate_mrz
-- [ ] Add function - generate_mrz
 - [ ] Extract face image
 - [ ] Add all checkdigit status
 
