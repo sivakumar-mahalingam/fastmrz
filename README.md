@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![PyPI](https://img.shields.io/pypi/v/fastmrz?logo=pypi&logoColor=959DA5&color=blue&cacheSeconds=3600)](https://pypi.org/project/fastmrz/)
+[![PyPI](https://img.shields.io/pypi/v/fastmrz?logo=pypi&logoColor=959DA5&color=blue)](https://pypi.org/project/fastmrz/)
 ![Python](https://img.shields.io/badge/python-3.8+-blue?logo=python&logoColor=959DA5)
 [![Downloads](https://static.pepy.tech/badge/fastmrz)](https://pypistats.org/packages/fastmrz)
 [![CodeQL](https://github.com/sivakumar-mahalingam/fastmrz/actions/workflows/codeql.yml/badge.svg)](https://github.com/sivakumar-mahalingam/fastmrz/actions/workflows/codeql.yml)
