@@ -3,6 +3,8 @@
 torch==2.15.0
 onnx==1.23.2
 onnxruntime==1.29.0
-pillow==12.3.0
+# pillow: the model was trained with 12.3.0; bumped to 13.0.0, which fixes the security
+# advisories against 12.3.0 (rendering API used by generate_data.py is unchanged)
+pillow==13.0.0
 numpy==2.5.3
 opencv-python-headless==5.0.0.93
