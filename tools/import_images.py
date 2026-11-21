@@ -14,7 +14,7 @@ Writes, next to ``<out prefix>``:
   <out>0_x.npy / <out>0_y.txt    training strips (``variants`` jittered copies per line)
   <out>test_x.npy / _y.txt       lines of the held-out documents (20%, by MRZ text)
   <out>holdout.json              held-out images -> MRZ text, for benchmark.py
-  <out>review/*.png, review.json lines that need a human (or Claude) to confirm them
+  <out>review/*.png, review.json lines that need a human to confirm them
   <out>report.json               what happened to every image
 
 Images and strips stay on this machine; nothing is uploaded.
@@ -39,17 +39,54 @@ NAME_MIN_P = 0.98      # every character of an unprotected line must be at least
 
 
 def unprotected_lines(mrz_type):
-    """Indexes of lines that no check digit covers."""
+    """Indexes of lines that no check digit covers.
+
+    These lines (the name line of TD1, line 1 of the two-line formats) can be misread
+    without any check digit failing, so they are only trusted as labels when the
+    recogniser was confident about every character.
+
+    Args:
+        mrz_type: ``"TD1"``, ``"TD2"``, ``"TD3"``, ``"MRVA"`` or ``"MRVB"``.
+
+    Returns:
+        List of 0-based line indexes.
+    """
     return [2] if mrz_type == "TD1" else [0]
 
 
 def jitter(quad, rnd, scale):
+    """Randomly move the four corners of a line quadrilateral.
+
+    Simulates small detection errors (slightly too tight, loose, shifted or tilted
+    crops) so the recogniser learns to tolerate them.
+
+    Args:
+        quad: 4 x 2 ``float32`` array of corner points in image coordinates.
+        rnd: ``random.Random`` instance, so the augmentation is reproducible.
+        scale: Maximum shift per coordinate, in pixels.
+
+    Returns:
+        A new 4 x 2 array; ``quad`` is not modified.
+    """
     q = quad.copy()
     q += np.array([[rnd.uniform(-1, 1), rnd.uniform(-1, 1)] for _ in range(4)], np.float32) * scale
     return q
 
 
 def photometric(strip, rnd):
+    """Apply random image-quality degradations to a grey line strip.
+
+    Each call applies, at random: Gaussian blur (50% of the time), a brightness and
+    contrast change, Gaussian noise, and JPEG re-compression at quality 30-90 (30% of
+    the time).
+
+    Args:
+        strip: Grey ``uint8`` strip of shape ``(H, W)``.
+        rnd: ``random.Random`` instance, so the augmentation is reproducible.
+
+    Returns:
+        The degraded strip as ``uint8``, same shape as ``strip``.
+    """
     img = strip.astype(np.float32)
     if rnd.random() < 0.5:
         img = cv2.GaussianBlur(img, (0, 0), rnd.uniform(0.3, 1.1))
@@ -62,6 +99,20 @@ def photometric(strip, rnd):
 
 
 def main(image_dir, out, variants=8):
+    """Read every image under ``image_dir`` and write training, test and review data.
+
+    For each image the MRZ is read with FastMRZ. Lines are used as labels when the
+    reading passes every check (or comes from ``labels.json``); unprotected lines read
+    with low confidence go to the review sheet instead. About 20% of documents,
+    chosen by a hash of the MRZ text, are held out as test data. See the module
+    docstring for the files written.
+
+    Args:
+        image_dir: Folder searched recursively for images (see ``EXTS``).
+        out: Output path prefix, e.g. ``"data/preal"``; file names are appended to it
+            directly, so include a trailing ``/`` to write into a folder instead.
+        variants: Number of jittered and degraded training copies per usable line.
+    """
     fm = FastMRZ()
     overrides = {}
     if os.path.isfile(os.path.join(image_dir, "labels.json")):
