@@ -116,4 +116,4 @@ FastMRZ is pure Python: the only dependencies are `numpy`, `opencv-python-headle
 
 ## License
 
-Distributed under the AGPL-3.0 License. See [LICENSE](https://github.com/sivakumar-mahalingam/fastmrz/blob/main/LICENSE) for more information.
+Distributed under the Apache License 2.0. See [LICENSE](https://github.com/sivakumar-mahalingam/fastmrz/blob/main/LICENSE) for more information.

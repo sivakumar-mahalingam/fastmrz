@@ -44,7 +44,7 @@ Actual: {'status': 'FAILURE', 'status_message': 'No MRZ detected'}
 Environment:
 - OS: Ubuntu 22.04
 - Python: 3.10
-- FastMRZ: 3.1.0
+- FastMRZ: 3.1.1
 - OpenCV: 4.10.0
 ```
 
@@ -264,7 +264,7 @@ mkdocs build --strict
 
 ## License
 
-By contributing to FastMRZ, you agree that your contributions will be licensed under the AGPL-3.0 License.
+By contributing to FastMRZ, you agree that your contributions will be licensed under the Apache License 2.0.
 
 ---
 

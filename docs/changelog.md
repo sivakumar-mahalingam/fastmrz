@@ -18,6 +18,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
+## [3.1.1] - 2026-11-21
+
+### Changed
+
+- Relicensed FastMRZ from AGPL-3.0 to Apache-2.0
+
+---
+
 ## [3.1.0] - 2026-11-21
 
 PDF support by default and an updated recogniser model, plus documentation and repository cleanup (#41). The public API is unchanged.
@@ -140,6 +148,7 @@ Complete rewrite of the reading pipeline. The public API is unchanged.
 
 | Version | Release Date | Key Features |
 |---------|--------------|--------------|
+| 3.1.1 | 2026-11-21 | Relicensed from AGPL-3.0 to Apache-2.0 |
 | 3.1.0 | 2026-11-21 | PDF support by default, updated recogniser model, security policy, issue and PR templates |
 | 3.0.0 | 2026-11-21 | Tesseract removed, built-in ONNX recogniser, PDF and batch input |
 | 2.1 | 2024 | MRVA/MRVB support, validation, multiple input formats |
@@ -190,7 +199,7 @@ Version 2.1 is backward compatible with 2.0. New features are additive:
 Releases are published to PyPI. To install a specific version:
 
 ```bash
-pip install fastmrz==3.1.0
+pip install fastmrz==3.1.1
 ```
 
 ---
