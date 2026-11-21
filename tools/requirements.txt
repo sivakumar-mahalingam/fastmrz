@@ -1,0 +1,8 @@
+# Versions the shipped model was trained and exported with (Python 3.13, CPU only).
+# Only needed to regenerate data or retrain; the fastmrz package itself needs just numpy + OpenCV.
+torch==2.15.0
+onnx==1.23.2
+onnxruntime==1.29.0
+pillow==12.3.0
+numpy==2.5.3
+opencv-python-headless==5.0.0.93
