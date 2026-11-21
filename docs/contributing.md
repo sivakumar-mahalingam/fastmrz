@@ -26,7 +26,7 @@ Before creating bug reports, please check the [issue tracker](https://github.com
   - OS and version
   - Python version
   - FastMRZ version
-  - Tesseract version
+  - OpenCV version (`python -c "import cv2; print(cv2.__version__)"`)
 
 **Example:**
 
@@ -44,8 +44,8 @@ Actual: {'status': 'FAILURE', 'status_message': 'No MRZ detected'}
 Environment:
 - OS: Ubuntu 22.04
 - Python: 3.10
-- FastMRZ: 2.1
-- Tesseract: 5.3.0
+- FastMRZ: 3.0.0
+- OpenCV: 4.10.0
 ```
 
 ### Suggesting Enhancements
@@ -87,8 +87,9 @@ We welcome pull requests! Here's the process:
 ### Prerequisites
 
 - Python 3.8 or higher
-- Tesseract OCR installed
 - Git
+
+No system packages are needed (Tesseract was removed in v3).
 
 ### Setting Up the Environment
 
@@ -103,11 +104,8 @@ We welcome pull requests! Here's the process:
     python -m venv venv
     source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-    # Install dependencies
-    pip install -r requirements.txt
-
-    # Install in editable mode
-    pip install -e .
+    # Install in editable mode, with the optional PDF extra
+    pip install -e ".[pdf]"
     ```
 
 === "Using uv (recommended)"
@@ -116,15 +114,9 @@ We welcome pull requests! Here's the process:
     git clone https://github.com/YOUR_USERNAME/fastmrz.git
     cd fastmrz
 
-    # Create and activate virtual environment
-    uv venv
-    source .venv/bin/activate
-
-    # Install dependencies
-    uv pip install -r requirements.txt
-
-    # Install in editable mode
-    uv pip install -e .
+    # Create the environment from uv.lock, with the optional PDF extra
+    uv sync --extra pdf
+    source .venv/bin/activate  # On Windows: .venv\Scriptsctivate
     ```
 
 === "Using conda"
@@ -133,30 +125,25 @@ We welcome pull requests! Here's the process:
     git clone https://github.com/YOUR_USERNAME/fastmrz.git
     cd fastmrz
 
-    # Create conda environment with Tesseract
-    conda create -n fastmrz-dev python=3.10 tesseract -c conda-forge
+    # Create a conda environment
+    conda create -n fastmrz-dev python=3.11
     conda activate fastmrz-dev
 
-    # Install dependencies
-    pip install -r requirements.txt
-
-    # Install in editable mode
-    pip install -e .
+    # Install in editable mode, with the optional PDF extra
+    pip install -e ".[pdf]"
     ```
 
 ### Running Tests
 
 ```bash
-python -m pytest tests/test.py
+python -m unittest tests.test_fastmrz
 ```
 
-Or directly:
+**Note:** Tests use the sample images in the `data/` directory. The PDF tests are skipped when PyMuPDF is not installed.
 
-```bash
-python tests/test.py
-```
+### Training the recogniser
 
-**Note:** Tests require sample images in the `data/` directory and the `mrz.traineddata` file in the `tessdata/` directory.
+Retraining `fastmrz/model/mrz_rec.onnx` is separate from the package and needs Python 3.13 with the pinned PyTorch build. See `tools/README.md`.
 
 ---
 
@@ -166,18 +153,20 @@ python tests/test.py
 fastmrz/
 ├── fastmrz/                 # Main package
 │   ├── __init__.py          # Package exports
-│   ├── fastmrz.py           # Core FastMRZ class
-│   ├── main.py              # Entry point
+│   ├── fastmrz.py           # Core FastMRZ class, input loading, search loop
+│   ├── detector.py          # Classical-CV MRZ line detection and rectification
+│   ├── recognizer.py        # ONNX CTC line recogniser
+│   ├── parser.py            # Format detection, repair, check digits, parsing
+│   ├── py.typed             # Type hint marker
 │   └── model/
-│       └── mrz_seg.onnx     # ONNX segmentation model
+│       └── mrz_rec.onnx     # ONNX line recogniser
 ├── tests/
-│   └── test.py              # Unit tests
+│   └── test_fastmrz.py      # Unit tests
+├── tools/                   # Recogniser training and benchmark scripts
 ├── data/                    # Sample document images
-├── tessdata/
-│   └── mrz.traineddata      # Custom Tesseract trained data
 ├── docs/                    # Documentation files
 ├── pyproject.toml           # Project configuration
-├── setup.py                 # Legacy setup file
+├── uv.lock                  # Locked dependencies
 ├── requirements.txt         # Dependencies
 └── README.md                # Project readme
 ```
@@ -236,17 +225,14 @@ Based on the project's TODO list, here are some areas where contributions are es
 
 ### High Priority
 
-- **PDF Input Support**: Implement `input_type="pdf"` functionality
-- **Bulk Processing**: Add batch processing for multiple documents
 - **Image Enhancement**: Add preprocessing options for low-quality images
 - **Documentation Website**: Help build and maintain the MkDocs site
+- **Recogniser Training Data**: More real MRZ lines in fonts far from OCR-B (see `tools/README.md`)
 
 ### Medium Priority
 
-- **`get_mrz_image` Function**: Return the cropped MRZ region image
 - **`generate_mrz` Function**: Generate MRZ text from structured data
 - **Face Extraction**: Extract the photograph from document images
-- **Improved Tesseract Model**: Train with additional data for better accuracy
 
 ### Low Priority
 
@@ -276,8 +262,8 @@ pip install mkdocs mkdocs-material mkdocstrings[python]
 # Serve locally
 mkdocs serve
 
-# Build static site
-mkdocs build
+# Build static site (as CI would)
+mkdocs build --strict
 ```
 
 ---

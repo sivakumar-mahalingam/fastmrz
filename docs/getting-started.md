@@ -1,199 +1,129 @@
 # Installation & Setup
 
-This guide covers installing FastMRZ and its dependencies on different operating systems.
+This guide covers installing FastMRZ and checking that it works.
 
 ---
 
-## Prerequisites
+## Requirements
 
-### Tesseract OCR
+| | Supported | Tested |
+|---|---|---|
+| Python | 3.8 or newer | 3.8, 3.9, 3.10, 3.11, 3.12, 3.13 |
+| numpy | any version that matches your OpenCV | 1.24.4 to 2.5.5 |
+| opencv-python-headless | 4.8 or newer | 4.8.1, 5.0.0, 5.1.0 |
+| PyMuPDF (optional, PDF input only) | 1.23 or newer, except 1.26.5 and 1.26.6 (security advisory) | 1.23.26, 1.24.11, 1.26.4, 2.1 |
 
-FastMRZ requires the Tesseract OCR engine to be installed on your system. Tesseract is used for optical character recognition of the detected MRZ region.
+FastMRZ is pure Python. It needs no system packages, no PyTorch and no GPU: the MRZ recogniser is a 2.4 MB ONNX model that ships inside the package and runs through OpenCV.
 
-#### Install Tesseract
-
-=== "Ubuntu / Debian"
-
-    ```bash
-    sudo apt-get update
-    sudo apt-get install tesseract-ocr
-    ```
-
-=== "macOS"
-
-    ```bash
-    brew install tesseract
-    ```
-
-=== "Windows"
-
-    Download the installer from the [official Tesseract releases](https://github.com/UB-Mannheim/tesseract/wiki) and run it. The default installation path is:
-    ```
-    C:\Program Files\Tesseract-OCR\tesseract.exe
-    ```
-
-=== "Conda"
-
-    ```bash
-    conda install -c conda-forge tesseract
-    ```
-
-#### Verify Installation
-
-After installation, verify that Tesseract is accessible from your command line:
-
-```bash
-tesseract --version
-```
-
-You should see output similar to:
-
-```
-tesseract 5.x.x
- leptonica-1.x.x
-```
+!!! note "Upgrading from 2.x"
+    Tesseract OCR and the `mrz.traineddata` file were **removed in v3**. You no longer need to install them or copy trained data anywhere, and you can uninstall Tesseract if nothing else on your system uses it.
 
 ---
 
 ## Install FastMRZ
 
-### Using pip
-
-```bash
-pip install fastmrz
-```
-
-### Using conda
-
-```bash
-conda create -n fastmrz tesseract -c conda-forge
-conda activate fastmrz
-pip install fastmrz
-```
-
-### Using uv (recommended for fast installs)
-
-```bash
-uv pip install fastmrz
-```
-
----
-
-## Install the Custom MRZ Trained Data
-
-FastMRZ uses a custom-trained Tesseract model optimized for MRZ recognition. You must install this trained data file for optimal accuracy.
-
-### Step 1: Download the trained data
-
-Download the `mrz.traineddata` file from the repository:
-
-```bash
-wget https://github.com/sivakumar-mahalingam/fastmrz/raw/main/tessdata/mrz.traineddata
-```
-
-Or download it directly from: [mrz.traineddata](https://github.com/sivakumar-mahalingam/fastmrz/raw/main/tessdata/mrz.traineddata)
-
-### Step 2: Copy to Tesseract tessdata folder
-
-Copy the `mrz.traineddata` file to your Tesseract installation's `tessdata` folder:
-
-=== "Ubuntu / Debian"
+=== "pip"
 
     ```bash
-    sudo cp mrz.traineddata /usr/share/tesseract-ocr/4.00/tessdata/
+    pip install fastmrz
     ```
 
-=== "macOS (Homebrew)"
+=== "uv"
 
     ```bash
-    cp mrz.traineddata /opt/homebrew/share/tessdata/
-    # or for Intel Macs:
-    cp mrz.traineddata /usr/local/share/tessdata/
+    uv pip install fastmrz
     ```
 
-=== "Windows"
+=== "From source"
 
-    Copy `mrz.traineddata` to:
-    ```
-    C:\Program Files\Tesseract-OCR\tessdata\
-    ```
-
-=== "Conda"
-
-    Find your conda environment's tessdata folder:
     ```bash
-    # Find the path
-    conda env list
-    # Then copy to:
-    # $CONDA_PREFIX/share/tessdata/
+    git clone https://github.com/sivakumar-mahalingam/fastmrz.git
+    cd fastmrz
+    pip install .
     ```
+
+### Optional: PDF input
+
+Reading PDFs (`input_type="pdf"`) needs [PyMuPDF](https://pymupdf.readthedocs.io/), available as the `pdf` extra:
+
+```bash
+pip install "fastmrz[pdf]"
+```
+
+Without it, everything except PDF input works. Passing a PDF raises `ValueError` with an install hint.
 
 ---
 
 ## Usage
 
-### Basic Usage
-
-If Tesseract is added to your system PATH:
-
 ```python
 from fastmrz import FastMRZ
+import json
 
 fast_mrz = FastMRZ()
-result = fast_mrz.get_details("path/to/document.jpg")
+
+result = fast_mrz.get_details("data/passport_uk.jpg", include_checkdigit=False)
+print(json.dumps(result, indent=4))
+
+text = fast_mrz.get_details("data/passport_uk.jpg", ignore_parse=True)
+print(text)
 ```
 
-### Specify Tesseract Path
+**Output:**
 
-If Tesseract is not in your PATH, provide the path explicitly:
+```console
+{
+    "mrz_type": "TD3",
+    "document_code": "P",
+    "issuer_code": "GBR",
+    "document_number": "707797979",
+    "surname": "PUDARSAN",
+    "given_name": "HENERT",
+    "nationality_code": "GBR",
+    "birth_date": "1995-05-20",
+    "sex": "M",
+    "expiry_date": "2017-04-22",
+    "optional_data": "",
+    "mrz_text": "P<GBRPUDARSAN<<HENERT<<<<<<<<<<<<<<<<<<<<<<<\n7077979792GBR9505209M1704224<<<<<<<<<<<<<<00",
+    "status": "SUCCESS"
+}
+P<GBRPUDARSAN<<HENERT<<<<<<<<<<<<<<<<<<<<<<<
+7077979792GBR9505209M1704224<<<<<<<<<<<<<<00
+```
 
-=== "macOS"
+One `FastMRZ` instance loads the model once and can be shared across threads, so create it once and reuse it.
 
-    ```python
-    fast_mrz = FastMRZ(
-        tesseract_path=r'/opt/homebrew/Cellar/tesseract/5.3.4_1/bin/tesseract'
-    )
-    ```
+### Custom recogniser model
 
-=== "Windows"
-
-    ```python
-    fast_mrz = FastMRZ(
-        tesseract_path=r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-    )
-    ```
-
-=== "Linux"
-
-    ```python
-    fast_mrz = FastMRZ(
-        tesseract_path=r'/usr/bin/tesseract'
-    )
-    ```
-
-### Specify Tessdata Path
-
-If you want to use a custom tessdata directory:
+To use a retrained recogniser (see `tools/README.md` in the repository), pass its path:
 
 ```python
-fast_mrz = FastMRZ(
-    tesseract_path="/path/to/tesseract",
-    tessdata_path="/path/to/tessdata"
-)
+fast_mrz = FastMRZ(model_path="path/to/mrz_rec.onnx")
+```
+
+### Migrating 2.x code
+
+`FastMRZ(tesseract_path=..., tessdata_path=...)` is still accepted, so existing code keeps running. Since Tesseract was removed in v3, both arguments are ignored and raise a `FutureWarning`. Remove them:
+
+```python
+# 2.x
+fast_mrz = FastMRZ(tesseract_path=r"C:\Program Files\Tesseract-OCR\tesseract.exe")
+
+# 3.x
+fast_mrz = FastMRZ()
 ```
 
 ---
 
 ## Dependencies
 
-FastMRZ has minimal dependencies:
-
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `opencv-python-headless` | >= 4.11.0.86 | Image processing, ONNX model inference, contour detection |
-| `pytesseract` | >= 0.3.10 | Python wrapper for Tesseract OCR |
+| `numpy` | any matching OpenCV | Image arrays |
+| `opencv-python-headless` | >= 4.8 | Image processing, MRZ detection, ONNX inference (`cv2.dnn`) |
+| `pymupdf` (extra `pdf`) | >= 1.23, != 1.26.5, != 1.26.6 | PDF rendering, only for `input_type="pdf"` |
 
-These are automatically installed when you install FastMRZ via pip.
+The required packages are installed automatically by pip.
 
 ---
 
@@ -204,23 +134,16 @@ These are automatically installed when you install FastMRZ via pip.
   - macOS
   - Linux (POSIX)
   - Windows 10/11
-- **RAM**: Minimum 512 MB recommended
-- **Disk Space**: ~50 MB for the package and dependencies
+- **CPU only**: about 0.1 s per image on a typical CPU
 
 ---
 
 ## Verify Installation
 
-Run the test suite to verify your installation:
+From a clone of the repository, run the test suite:
 
 ```bash
-python -m pytest tests/test.py
-```
-
-Or run the included test script:
-
-```bash
-python tests/test.py
+python -m unittest tests.test_fastmrz
 ```
 
 ---

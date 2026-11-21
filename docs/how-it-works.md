@@ -1,301 +1,164 @@
 # How It Works
 
-This document explains the internal architecture and processing pipeline of FastMRZ.
+This document explains the internal architecture and processing pipeline of FastMRZ 3.
+
+!!! note "Changed in v3"
+    Up to 2.x, FastMRZ located the MRZ with an ONNX segmentation model and read it with Tesseract OCR.
+    Tesseract was **removed in v3**: detection is now classical computer vision, and the text is read
+    by FastMRZ's own small recogniser network. The public API is unchanged.
 
 ---
 
 ## Architecture Overview
 
-FastMRZ combines three core technologies to extract MRZ data from document images:
-
-1. **ONNX-based Semantic Segmentation** - Locates the MRZ region in the document
-2. **Contour Detection** - Extracts the precise bounding box of the MRZ area
-3. **Tesseract OCR** - Reads the text from the extracted region
-
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        FastMRZ Processing Pipeline                   │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                      │
-│  ┌──────────┐    ┌──────────────┐    ┌──────────────┐    ┌────────┐ │
-│  │  Input   │───▶│   ONNX Model │───▶│   Contour    │───▶│  Tesseract │ │
-│  │  Image   │    │ Segmentation │    │  Detection   │    │    OCR  │ │
-│  └──────────┘    └──────────────┘    └──────────────┘    └────────┘ │
-│                                                                        │
-│       ┌──────────────────────────────────────────────────────┐        │
-│       │                   MRZ Parser                         │        │
-│       │  (Field extraction, date formatting, validation)     │        │
-│       └──────────────────────────────────────────────────────┘        │
-│                                                                        │
-│       ┌──────────────────────────────────────────────────────┐        │
-│       │              Checksum Validation                      │        │
-│       │  (ICAO 9303 check digits for all fields)             │        │
-│       └──────────────────────────────────────────────────────┘        │
-│                                                                        │
-│                              │                                         │
-│                              ▼                                         │
-│                    ┌──────────────────┐                                │
-│                    │  Structured JSON │                                │
-│                    │    Output        │                                │
-│                    └──────────────────┘                                │
-└─────────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────┐
+│                   FastMRZ Processing Pipeline                      │
+├────────────────────────────────────────────────────────────────────┤
+│                                                                    │
+│  ┌────────┐   ┌──────────┐   ┌──────────┐   ┌────────────┐         │
+│  │ Input  │──▶│  Detect  │──▶│ Rectify  │──▶│ Recognise  │         │
+│  │ image  │   │ (OpenCV) │   │ 32 x 640 │   │ (ONNX CTC) │         │
+│  └────────┘   └──────────┘   └──────────┘   └─────┬──────┘         │
+│                                                   │                │
+│                    ┌──────────────────┐   ┌───────▼──────┐         │
+│                    │      Select      │◀──│    Repair    │         │
+│                    │ (score, agree)   │   │ (check digits│         │
+│                    └────────┬─────────┘   │  & charsets) │         │
+│                             │             └──────────────┘         │
+│                    ┌────────▼─────────┐                            │
+│                    │ Parse & validate │                            │
+│                    │   (ICAO 9303)    │                            │
+│                    └────────┬─────────┘                            │
+│                             ▼                                      │
+│                       dict / text                                  │
+└────────────────────────────────────────────────────────────────────┘
 ```
+
+| Step | What it does |
+|---|---|
+| Detect | Classical CV (blackhat, local contrast, morphological closing) finds 2-3 parallel text lines of equal length. Works at any rotation (with extra diagonal passes), skew and perspective. |
+| Rectify | Each line is perspective-warped to a 32 x 640 strip, in both reading directions. |
+| Recognise | A 2.4 MB fully convolutional CTC network (ONNX, run through `cv2.dnn`) reads the whole line at once and returns per-character probabilities. |
+| Repair | Line length is fitted to the format, positional character sets are enforced, and failing check digits may trigger a few substitutions among the recogniser's own second choices. |
+| Select | Candidates are scored by check digits, date validity, known ICAO country codes, confidence and number of repairs. |
+
+The code lives in four modules:
+
+| Module | Responsibility |
+|---|---|
+| `fastmrz/detector.py` | Locating MRZ candidates and warping each line to a strip |
+| `fastmrz/recognizer.py` | Running the ONNX line recogniser and CTC decoding |
+| `fastmrz/parser.py` | Format detection, repair, check digits, field parsing |
+| `fastmrz/fastmrz.py` | Public `FastMRZ` class, input loading and the search loop |
 
 ---
 
 ## Processing Pipeline
 
-### Step 1: Image Preprocessing
+### Step 1: Input loading
 
-When an image is passed to FastMRZ, it undergoes preprocessing before being fed to the segmentation model:
+Every image input (`imagepath`, `numpy`, `base64`, `bytes`, `pdf`) is decoded with OpenCV (PDF pages are rendered at 200 dpi with PyMuPDF) and converted to a greyscale `uint8` image. `text` input skips straight to parsing.
 
-```python
-# Image is resized to 256x256 for the ONNX model
-image = cv2.resize(image, (256, 256), interpolation=cv2.INTER_NEAREST)
+### Step 2: Detection
 
-# Normalized to [0, 1] range
-image = np.asarray(np.float32(image / 255))
+The detector (`find_candidates`) uses no neural network. On a resized copy of the image it:
 
-# Reshaped to model input shape (1, 256, 256, 3)
-image = np.reshape(image, (1, 256, 256, 3))
-```
+1. Applies a **blackhat** transform to highlight dark print on a light background.
+2. Normalises **local contrast** so faint MRZ print survives next to strong edges.
+3. **Closes** characters into line-shaped blobs: either a horizontal smear (robust for roughly upright documents) or an isotropic closing that works at any rotation, because the gap between MRZ characters is much smaller than the gap between MRZ lines.
+4. Fits rotated boxes to the blobs, merges collinear pieces, and groups 2 or 3 **parallel, equally long** lines into MRZ candidates.
 
-The fixed 256x256 input size ensures consistent model inference regardless of the original image resolution.
+Each candidate is a list of quadrilaterals, one per MRZ line, in source-image coordinates. Recall matters more than precision here: false candidates are rejected later by the recogniser and the check digits.
 
-### Step 2: ONNX Segmentation Model
+### Step 3: Rectification
 
-FastMRZ includes a pre-trained ONNX model (`mrz_seg.onnx`) that performs semantic segmentation to identify the MRZ region in the document image.
+Each line quadrilateral is refined and perspective-warped (`warp_line`) to a 32 x 640 greyscale strip. Every candidate is read in both directions (normal and rotated 180°), so upside-down documents are handled without knowing the orientation in advance.
 
-```python
-# Load the model (done once during initialization)
-self.net = cv2.dnn.readNetFromONNX(
-    os.path.join(os.path.dirname(__file__), "model/mrz_seg.onnx")
-)
+`get_mrz_image()` returns exactly these strips, stacked top to bottom.
 
-# Run inference
-self.net.setInput(image_array)
-output_data = self.net.forward()
-```
+### Step 4: Recognition
 
-The model outputs a segmentation mask where pixels belonging to the MRZ region have high confidence values.
+The strips are contrast-stretched and passed in a single batch to the recogniser (`fastmrz/model/mrz_rec.onnx`):
 
-**Model Details:**
-- Format: ONNX (Open Neural Network Exchange)
-- Input: 256x256 RGB image
-- Output: Segmentation mask (256x256x1)
-- Framework: Run via OpenCV's DNN module (no additional ML dependencies)
+- **Architecture:** fully convolutional network with a CTC output over the 37 MRZ characters (`0-9`, `A-Z`, `<`)
+- **Size:** 2.4 MB, run through OpenCV's DNN module, so no extra ML runtime is needed
+- **Training:** synthetic lines in OCR-B plus 16 other fonts, fine-tuned on about 5,800 real MRZ lines (see `tools/README.md`)
 
-### Step 3: Contour Detection & ROI Extraction
+Greedy CTC decoding returns, for each line, the text, a probability vector for every character, and a confidence score. Those per-character alternatives drive the repair step.
 
-The segmentation mask is processed to extract the precise MRZ bounding box:
+### Step 5: Repair
 
-```python
-# Threshold the output mask
-output_data = (output_data[0, :, :, 0] > 0.25) * 1
-output_data = np.uint8(output_data * 255)
+`parser.repair()` turns the raw recognition into a well-formed MRZ:
 
-# Resize mask to original image dimensions
-altered_image = cv2.resize(output_data, (image.shape[1], image.shape[0]))
+- **Format fit:** the line count and length decide the format (TD1 3x30, TD2/MRV-B 2x36, TD3/MRV-A 2x44), and lines are fitted to that length.
+- **Positional character sets:** positions that must be digits (dates, check digits) or letters (country codes) are forced to the most probable character of the right class.
+- **Issuer correction:** an issuing-state code that differs from the nationality by one or two letters the recogniser also considered is corrected.
+- **Check-digit guided fixes:** when a check digit fails, at most two substitutions among the recogniser's own second choices are tried. As a last resort only the check digits themselves are re-read, and the result is accepted only if every check then passes.
 
-# Morphological erosion to clean up noise
-kernel = np.ones((5, 5), dtype=np.float32)
-altered_image = cv2.erode(altered_image, kernel, iterations=1)
+Readings that would need more than six edits are discarded as "not an MRZ".
 
-# Find contours
-contours, hierarchy = cv2.findContours(
-    altered_image.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
-)
+### Step 6: Selection
 
-# Select the largest contour by area
-c_area = np.zeros([len(contours)])
-for j in range(len(contours)):
-    c_area[j] = cv2.contourArea(contours[j])
+Detection runs in stages, from cheap and common settings to exhaustive ones (extra scales, isotropic closing, ±30/45/60° rotations). Each reading is scored by:
 
-x, y, w, h = cv2.boundingRect(contours[np.argmax(c_area)])
-```
+- the fraction of check digits that pass,
+- recogniser confidence,
+- number of repairs (penalised),
+- invalid dates and unknown country codes (penalised).
 
-**Padding**: A 10-pixel padding is added around the bounding box to ensure the entire MRZ region is captured:
+The search stops as soon as a reading is valid and needed at most one repair, or when two independent detector stages agree on the same reading. Low-quality readings are rejected, and `get_details` then returns `{"status": "FAILURE", "status_message": "No MRZ detected"}`.
 
-```python
-padding = 10
-x_start = max(0, x - padding)
-y_start = max(0, y - padding)
-x_end = min(image.shape[1], x + w + padding)
-y_end = min(image.shape[0], y + h + padding)
-```
+### Step 7: Parsing
 
-### Step 4: Image Preprocessing for OCR
-
-The extracted ROI undergoes additional preprocessing to optimize it for Tesseract OCR:
-
-```python
-# Convert to grayscale
-roi_gray = cv2.cvtColor(roi_arr, cv2.COLOR_BGR2GRAY)
-
-# Apply Otsu's thresholding for binary image
-roi_threshold = cv2.threshold(
-    roi_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
-)[1]
-```
-
-Otsu's thresholding automatically determines the optimal threshold value to separate text from background, which significantly improves OCR accuracy for MRZ text.
-
-### Step 5: Tesseract OCR
-
-The preprocessed ROI is passed to Tesseract with the custom MRZ-trained model:
-
-```python
-custom_config = r"--oem 3 --psm 6" + (
-    f" --tessdata-dir {self.tessdata_path}" if self.tessdata_path else ""
-)
-mrz_text = pytesseract.image_to_string(
-    roi_threshold, lang="mrz", config=custom_config
-)
-```
-
-**Configuration parameters:**
-- `--oem 3`: Uses both LSTM and legacy OCR engines
-- `--psm 6`: Assumes a single uniform block of text
-- `lang="mrz"`: Uses the custom MRZ-trained data
-
-### Step 6: MRZ Text Cleansing
-
-The raw OCR output is cleaned to extract valid MRZ lines:
-
-```python
-def _cleanse_roi(self, mrz_text):
-    input_list = mrz_text.replace(" ", "").split("\n")
-    
-    # Detect MRZ line length (30, 36, or 44 characters)
-    selection_length = next(
-        (len(item) for item in input_list
-         if "<" in item and len(item) in {30, 36, 44}),
-        None,
-    )
-    
-    # Filter lines matching the detected format
-    new_list = [item for item in input_list
-                if len(item) >= selection_length and "<" in item]
-    
-    return "\n".join(new_list)
-```
-
-This step handles common OCR artifacts like extra whitespace, broken lines, and noise.
-
-### Step 7: MRZ Parsing
-
-The cleansed MRZ text is parsed according to ICAO Doc 9303 specifications. The parser handles all supported document types:
+The selected lines are parsed according to ICAO Doc 9303:
 
 | Document Type | Detection Logic |
 |---------------|-----------------|
-| **TD3** | 2 lines, 44 chars each, last char is not `<` |
-| **TD2** | 2 lines, 36 chars each, last char is not `<` |
-| **MRVA** | 2 lines, 44 chars each, last char is `<` |
-| **MRVB** | 2 lines, 36 chars each, last char is `<` |
 | **TD1** | 3 lines, 30 chars each |
+| **TD2** | 2 lines, 36 chars each, document code does not start with `V` |
+| **MRVB** | 2 lines, 36 chars each, document code starts with `V` |
+| **TD3** | 2 lines, 44 chars each, document code does not start with `V` |
+| **MRVA** | 2 lines, 44 chars each, document code starts with `V` |
 
-**Parsed Fields:**
+TD1 document numbers longer than 9 characters, which continue in the optional data field, are joined back together.
 
-For TD2/TD3/MRVA/MRVB (2-line formats):
-- Document code
-- Issuer code (3-letter country code)
-- Surname
-- Given name(s)
+### Step 8: Date formatting
+
+MRZ dates are `YYMMDD`. FastMRZ returns them as `YYYY-MM-DD`:
+
+- **Birth dates** are placed in the most recent century that is not in the future.
+- **Expiry dates** are placed between the recent past and 50 years ahead.
+- Partially unknown dates (month or day `00`) are kept. A date that is not a calendar date is returned as the raw `YYMMDD`, and the status message reports it.
+
+### Step 9: Checksum validation
+
+All ICAO 9303 check digits are verified with the 7-3-1 weighting (see [Checksum Validation](checksum-validation.md)):
+
 - Document number
-- Nationality code
 - Date of birth
-- Sex
-- Expiry date
-- Optional data
-- All check digits
+- Date of expiry
+- Optional data (TD3; a `<` check digit is accepted when the optional data is empty)
+- Final composite check digit (TD1, TD2, TD3)
 
-For TD1 (3-line format):
-- Document code
-- Issuer code
-- Document number
-- Optional data (parts 1 and 2)
-- Date of birth
-- Sex
-- Expiry date
-- Nationality code
-- Surname
-- Given name(s)
-- All check digits
-
-### Step 8: Date Formatting
-
-MRZ dates are stored as YYMMDD format. FastMRZ converts them to ISO 8601 format (YYYY-MM-DD):
-
-```python
-def _format_date(self, input_date):
-    formatted_date = str(datetime.strptime(input_date, "%y%m%d").date())
-    return formatted_date
-```
-
-**Century Handling**: MRZ dates use 2-digit years. FastMRZ determines the century by comparing birth date with expiry date:
-
-```python
-def _get_birth_date(self, birth_date_str, expiry_date_str):
-    birth_year = int(birth_date_str[:4])
-    expiry_year = int(expiry_date_str[:4])
-    
-    if expiry_year > birth_year:
-        return birth_date_str
-    adjusted_year = birth_year - 100
-    return f"{adjusted_year}-{birth_date_str[5:]}"
-```
-
-If the birth year appears to be in the future relative to the expiry date, it is adjusted back by 100 years.
-
-### Step 9: Checksum Validation
-
-FastMRZ validates all ICAO 9303 check digits:
-
-```python
-def _get_checkdigit(self, input_string):
-    weights_pattern = [7, 3, 1]
-    
-    total = 0
-    for i, char in enumerate(input_string):
-        if char.isdigit():
-            value = int(char)
-        elif char.isalpha():
-            value = ord(char.upper()) - ord("A") + 10
-        else:
-            value = 0
-        total += value * weights_pattern[i % len(weights_pattern)]
-    
-    check_digit = total % 10
-    return str(check_digit)
-```
-
-**Validated Fields:**
-- Document number check digit
-- Date of birth check digit
-- Expiry date check digit
-- Optional data check digit (TD3 only)
-- Final composite check digit
-
-If any check digit fails validation, the result status is set to `"FAILURE"` with a descriptive error message.
+`status` is `"SUCCESS"` only when the format and every check digit are valid. Otherwise it is `"FAILURE"` and `status_message` names the first problem found.
 
 ---
 
 ## Input Type Handling
 
-FastMRZ supports multiple input formats through the `input_type` parameter:
-
 | Input Type | Processing |
 |------------|------------|
-| `imagepath` | Reads file, converts to Base64, then to NumPy array |
-| `numpy` | Uses array directly |
-| `base64` | Decodes to NumPy array |
-| `text` | Skips image processing, parses MRZ text directly |
+| `imagepath` | Reads the file bytes and decodes them with OpenCV |
+| `numpy` | Uses the array directly (BGR colour or greyscale) |
+| `base64` | Strips an optional `data:` prefix, decodes, then decodes the image |
+| `bytes` | Decodes the encoded image (JPEG, PNG, ...) |
+| `pdf` | Renders up to 10 pages with PyMuPDF; the first page with an MRZ wins |
+| `text` | Skips image processing; parses the MRZ text directly (no auto-correction) |
 
 ---
 
 ## Error Handling
-
-FastMRZ provides structured error responses:
 
 ```python
 # Successful extraction
@@ -306,7 +169,7 @@ FastMRZ provides structured error responses:
     "status": "SUCCESS"
 }
 
-# Failed extraction
+# No MRZ found
 {
     "status": "FAILURE",
     "status_message": "No MRZ detected"
@@ -321,14 +184,16 @@ FastMRZ provides structured error responses:
 }
 ```
 
+Inputs that cannot be read at all (missing file, undecodable image, bad base64, unsupported `input_type`, PDF without PyMuPDF) raise `ValueError`. `get_details_batch` turns those into `FAILURE` entries instead.
+
 ---
 
 ## Performance Considerations
 
-- **Model Loading**: The ONNX model is loaded once during `FastMRZ` initialization, not per-call
-- **Image Resizing**: All images are resized to 256x256 for consistent model inference
-- **Memory Efficiency**: Uses `opencv-python-headless` to avoid GUI dependencies
-- **Minimal Dependencies**: Only OpenCV and pytesseract are required
+- **Model loading:** the ONNX model is read once in `FastMRZ()`. Each thread gets its own OpenCV network, so one instance can be shared across threads.
+- **Speed:** about 0.11 s per image on average on a CPU. Most images are settled by the first detector stage.
+- **Batching:** `get_details_batch` processes inputs on a thread pool (up to 8 workers by default).
+- **Minimal dependencies:** only `numpy` and `opencv-python-headless`, plus optional `pymupdf` for PDFs.
 
 ---
 

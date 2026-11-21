@@ -231,7 +231,11 @@ Note: This only removes check digit **fields** from the output. Validation still
 
 ## Using Check Digits for Error Correction
 
-The checksum algorithm can be used to detect (but not correct) OCR errors. If a check digit fails validation, it indicates that at least one character in the corresponding field was misread.
+A failing check digit means at least one character in the corresponding field was misread (or the document is not genuine).
+
+For **image** input, FastMRZ uses this to correct recognition errors: when a check digit fails, it tries at most two substitutions among the recogniser's own second-choice characters, and as a last resort re-reads only the check digits. A correction is accepted only if the check digits then pass (see [How It Works](how-it-works.md#step-5-repair)).
+
+For **text** input (`input_type="text"` and `validate_mrz()`), nothing is corrected: the text is validated exactly as given.
 
 ### Example: Detecting an OCR Error
 

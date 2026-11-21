@@ -2,7 +2,7 @@
 
 ![FastMRZ](https://raw.githubusercontent.com/sivakumar-mahalingam/fastmrz/main/docs/FastMRZ.png)
 
-**FastMRZ** is an open-source Python package that automates the extraction and validation of Machine Readable Zone (MRZ) data from travel documents and identification cards. Built with computer vision, machine learning-based segmentation, and optical character recognition, FastMRZ delivers accurate MRZ extraction from document images with minimal setup.
+**FastMRZ** is an open-source Python package that automates the extraction and validation of Machine Readable Zone (MRZ) data from travel documents and identification cards. Built with classical computer vision and a compact built-in ONNX recogniser, FastMRZ delivers accurate MRZ extraction from document images with minimal setup.
 
 ---
 
@@ -16,10 +16,11 @@ FastMRZ provides a lightweight, efficient, and easy-to-use implementation that s
 
 ## Key Features
 
-- **MRZ Detection**: Detects and extracts the MRZ region from document images using contour detection
-- **Custom ONNX Models**: Integrated custom-trained ONNX segmentation models for improved recognition accuracy
-- **Built-in Validation**: Comprehensive checksum logic verifies extracted data to catch OCR errors and detect potential document tampering
-- **Multiple Input Formats**: Accepts image paths, NumPy arrays, Base64 strings, or raw MRZ text
+- **MRZ Detection**: Finds the MRZ at any rotation, skew or perspective
+- **Built-in ONNX Recogniser**: A 2.4 MB model run through OpenCV reads each MRZ line (replacing Tesseract, which was removed in v3); no GPU needed
+- **Built-in Validation**: Comprehensive checksum logic verifies extracted data, and misread characters are repaired using the check digits
+- **Multiple Input Formats**: Accepts image paths, NumPy arrays, Base64 strings, encoded bytes, PDFs, or raw MRZ text
+- **Batch Processing**: `get_details_batch` reads many documents in parallel
 - **Structured Output**: Returns extracted MRZ data as structured JSON with parsed fields
 - **ICAO Compliant**: Follows ICAO Doc 9303 standards for MRZ format and validation
 
@@ -63,13 +64,19 @@ print(json.dumps(result, indent=4))
     "mrz_type": "TD3",
     "document_code": "P",
     "issuer_code": "GBR",
+    "document_number": "707797979",
     "surname": "PUDARSAN",
     "given_name": "HENERT",
-    "document_number": "707797979",
+    "document_number_checkdigit": "2",
     "nationality_code": "GBR",
     "birth_date": "1995-05-20",
+    "birth_date_checkdigit": "9",
     "sex": "M",
     "expiry_date": "2017-04-22",
+    "expiry_date_checkdigit": "4",
+    "optional_data": "",
+    "optional_data_checkdigit": "0",
+    "final_checkdigit": "0",
     "mrz_text": "P<GBRPUDARSAN<<HENERT<<<<<<<<<<<<<<<<<<<<<<<\n7077979792GBR9505209M1704224<<<<<<<<<<<<<<00",
     "status": "SUCCESS"
 }
@@ -77,9 +84,9 @@ print(json.dumps(result, indent=4))
 
 ---
 
-## Prerequisites
+## Requirements
 
-FastMRZ requires the **Tesseract OCR** engine to be installed on your system. See the [Installation Guide](getting-started.md) for detailed setup instructions.
+FastMRZ is pure Python: the only dependencies are `numpy` and `opencv-python-headless`, plus optional `pymupdf` for PDF input. No system packages are needed. Tesseract OCR, required up to 2.x, was removed in v3. See the [Installation Guide](getting-started.md) for details.
 
 ---
 

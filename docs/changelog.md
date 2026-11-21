@@ -10,15 +10,50 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Planned
 
-- PDF input support
-- Bulk/batch processing
 - Image enhancement model parameter
 - Text image enhancement model
-- `get_mrz_image` function to return cropped MRZ region
 - `generate_mrz` function to create MRZ from structured data
 - Face image extraction from documents
 - Complete check digit status reporting
-- Improved Tesseract model training
+
+---
+
+## [3.0.0] - Unreleased
+
+Complete rewrite of the reading pipeline. The public API is unchanged.
+
+### Removed
+
+- **Tesseract OCR and `pytesseract` (removed in v3).** No system dependency and no `mrz.traineddata` / tessdata to install.
+- The ONNX segmentation model `mrz_seg.onnx` and the `setup.py` / `MANIFEST.in` packaging files.
+
+### Added
+
+- Built-in 2.4 MB ONNX CTC line recogniser (`mrz_rec.onnx`), run through OpenCV
+- Classical-CV MRZ detector that works at any rotation, skew and perspective
+- Check-digit guided repair of misread characters
+- `input_type="bytes"` for encoded image bytes
+- `input_type="pdf"` (optional extra: `pip install "fastmrz[pdf]"`)
+- `get_details_batch()` for parallel processing of many documents
+- `get_mrz_image()` returning the rectified MRZ strip
+- `model_path` argument to load a retrained recogniser
+- Type hints (`py.typed`) and exported `InputType`, `InputData`, `MRZDetails` types
+- `"Invalid date of birth"` / `"Invalid date of expiry"` status messages
+- Training and benchmark tools in `tools/`
+
+### Changed
+
+- `tesseract_path` and `tessdata_path` are deprecated and ignored (Tesseract removed in v3); passing them raises a `FutureWarning`
+- Dependencies are now `numpy` and `opencv-python-headless>=4.8`
+- Clean-image exact match on the benchmark improved from 27/42 to 41/42; average time per image dropped from 0.74 s to 0.11 s
+
+### Fixed
+
+- Lines dropped or MRZ not found (e.g. Chinese passports whose line 2 has no `<`)
+- Rotated or skewed images not read
+- `<` as an empty optional-data check digit reported as invalid
+- TD1 optional data read from the wrong place; long TD1 document numbers not joined
+- Crashes on a missing given name or invalid dates
 
 ---
 
@@ -59,7 +94,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Date formatting (YYMMDD to ISO 8601)
 - Century resolution for birth dates
 - JSON output format
-- Custom Tesseract trained data (`mrz.traineddata`)
+- Custom trained data (`mrz.traineddata`) for the OCR engine (Tesseract, removed in v3)
 
 ### Changed
 
@@ -74,7 +109,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Added
 
 - Basic MRZ extraction from passport images
-- Tesseract OCR integration
+- Tesseract OCR integration (removed in v3)
 - Contour detection for MRZ region identification
 - Support for TD3 (passport) documents
 - JSON output format
@@ -85,6 +120,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 | Version | Release Date | Key Features |
 |---------|--------------|--------------|
+| 3.0.0 | Unreleased | Tesseract removed, built-in ONNX recogniser, PDF and batch input |
 | 2.1 | 2024 | MRVA/MRVB support, validation, multiple input formats |
 | 2.0 | 2024 | ONNX model, complete pipeline rewrite |
 | 1.0 | - | Initial MRZ extraction |
@@ -93,18 +129,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## Migration Guide
 
+### From 2.x to 3.0
+
+Version 3.0 keeps the 2.x API, so existing code runs unchanged:
+
+1. **Nothing extra to install:** Tesseract and `mrz.traineddata` are no longer used (removed in v3).
+
+2. **Constructor arguments:** `tesseract_path` and `tessdata_path` are ignored (Tesseract removed in v3) and raise a `FutureWarning`. Remove them:
+   ```python
+   fast_mrz = FastMRZ()
+   ```
+
+3. **Output:** the same keys and `status` / `status_message` values. Invalid dates are now reported (`"Invalid date of birth"`, `"Invalid date of expiry"`) and returned as the raw `YYMMDD`.
+
+4. **PDF input:** install the extra with `pip install "fastmrz[pdf]"`.
+
 ### From 1.x to 2.x
 
 Version 2.0 introduced significant changes:
 
-1. **ONNX Model**: The extraction pipeline now uses a custom-trained ONNX model. Ensure you have the `mrz.traineddata` file installed.
+1. **ONNX Model**: The extraction pipeline now uses a custom-trained ONNX segmentation model. In 2.x, the `mrz.traineddata` file also had to be installed (no longer needed: removed in v3).
 
 2. **Output Format**: The output dictionary structure may have changed. Check the [API Reference](api-reference.md) for the current format.
 
-3. **Tesseract Path**: If Tesseract is not in your PATH, you must now provide the path explicitly:
-   ```python
-   fast_mrz = FastMRZ(tesseract_path="/path/to/tesseract")
-   ```
+3. **OCR engine path**: In 2.x, if the OCR engine was not in your PATH, you had to pass `tesseract_path` explicitly. This argument is ignored since Tesseract was removed in v3.
 
 ### From 2.0 to 2.1
 
@@ -121,7 +169,7 @@ Version 2.1 is backward compatible with 2.0. New features are additive:
 Releases are published to PyPI. To install a specific version:
 
 ```bash
-pip install fastmrz==2.1
+pip install fastmrz==3.0.0
 ```
 
 ---

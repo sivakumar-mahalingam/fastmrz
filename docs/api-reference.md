@@ -2,45 +2,59 @@
 
 Complete documentation for the FastMRZ Python API.
 
+Type hints are included (`py.typed`), so editors and type checkers see the types below. The package exports:
+
+```python
+from fastmrz import FastMRZ, InputData, InputType, MRZDetails
+```
+
+| Name | Definition |
+|---|---|
+| `FastMRZ` | The main class |
+| `InputType` | `Literal["imagepath", "numpy", "base64", "bytes", "pdf", "text"]` |
+| `InputData` | `Union[str, os.PathLike[str], bytes, bytearray, numpy.ndarray]` |
+| `MRZDetails` | `Dict[str, str]`, the parsed result |
+
 ---
 
 ## FastMRZ Class
 
-The main class for MRZ extraction and validation.
+The main class for MRZ extraction and validation. One instance can be shared by several threads.
 
 ### `__init__`
 
 ```python
-FastMRZ(tesseract_path: str = "", tessdata_path: str = "")
+FastMRZ(
+    tesseract_path: str = "",
+    tessdata_path: str = "",
+    model_path: Optional[Union[str, os.PathLike[str]]] = None,
+)
 ```
 
-Initialize the FastMRZ engine.
+Initialize the FastMRZ engine and load the recogniser model.
 
 **Parameters:**
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `tesseract_path` | `str` | `""` | Path to the Tesseract OCR executable. Leave empty if Tesseract is in your system PATH. |
-| `tessdata_path` | `str` | `""` | Path to the directory containing Tesseract trained data files (including `mrz.traineddata`). |
+| `tesseract_path` | `str` | `""` | Deprecated and ignored: Tesseract was removed in v3. Passing a value raises a `FutureWarning`. |
+| `tessdata_path` | `str` | `""` | Deprecated and ignored, like `tesseract_path`. |
+| `model_path` | `str \| PathLike \| None` | `None` | Replacement recogniser ONNX model. Defaults to the bundled `fastmrz/model/mrz_rec.onnx`. |
 
 **Example:**
 
 ```python
 from fastmrz import FastMRZ
 
-# Default initialization (Tesseract in PATH)
 fast_mrz = FastMRZ()
 
-# With explicit paths
-fast_mrz = FastMRZ(
-    tesseract_path=r'C:\Program Files\Tesseract-OCR\tesseract.exe',
-    tessdata_path=r'C:\Program Files\Tesseract-OCR\tessdata'
-)
+# With a retrained recogniser
+fast_mrz = FastMRZ(model_path="models/mrz_rec.onnx")
 ```
 
 **Raises:**
 
-No exceptions are raised during initialization. The ONNX model is loaded at this stage.
+The model is loaded here, so a missing or invalid `model_path` fails immediately (`OSError` / `cv2.error`).
 
 ---
 
@@ -48,37 +62,37 @@ No exceptions are raised during initialization. The ONNX model is loaded at this
 
 ```python
 get_details(
-    input_data: Union[str, np.ndarray, bytes],
-    input_type: str = "imagepath",
+    input_data: InputData,
+    input_type: InputType = "imagepath",
     ignore_parse: bool = False,
-    include_checkdigit: bool = True
-) -> Union[dict, str]
+    include_checkdigit: bool = True,
+) -> Union[MRZDetails, str]
 ```
 
-Extract MRZ data from the provided input.
+Read and parse the MRZ of one document.
 
 **Parameters:**
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `input_data` | `str`, `np.ndarray`, or `bytes` | Required | The input data. Format depends on `input_type`. |
-| `input_type` | `str` | `"imagepath"` | Type of input data. One of: `"imagepath"`, `"numpy"`, `"base64"`, `"text"`. |
-| `ignore_parse` | `bool` | `False` | If `True`, returns raw MRZ text instead of parsed dictionary. |
-| `include_checkdigit` | `bool` | `True` | If `True`, includes check digit fields in the output dictionary. |
+| `input_data` | `InputData` | Required | The document, in the form given by `input_type`. |
+| `input_type` | `InputType` | `"imagepath"` | One of `"imagepath"`, `"numpy"`, `"base64"`, `"bytes"`, `"pdf"`, `"text"`. See [Input Formats](input-formats.md). |
+| `ignore_parse` | `bool` | `False` | If `True`, returns the raw MRZ text instead of the parsed dictionary. |
+| `include_checkdigit` | `bool` | `True` | If `True`, includes the `*_checkdigit` fields in the output dictionary. |
 
 **Returns:**
 
-- If `ignore_parse=False`: A dictionary with parsed MRZ fields (see [Output Format](#output-format))
-- If `ignore_parse=True`: A string containing the raw MRZ text
+- If `ignore_parse=False`: a dictionary of strings (see [Output Format](#output-format)). When no MRZ is found: `{"status": "FAILURE", "status_message": "No MRZ detected"}`.
+- If `ignore_parse=True`: the MRZ lines joined by `"\n"`, or `""` when no MRZ is found.
 
 **Raises:**
 
-- `ValueError`: If `input_data` is not valid for the specified `input_type`, or if `input_type` is unsupported.
+- `ValueError`: the input cannot be read (missing file, undecodable image, bad base64, unsupported `input_type`, PDF input without PyMuPDF installed).
 
 **Examples:**
 
 ```python
-# From image path
+# From image path (str or pathlib.Path)
 result = fast_mrz.get_details("passport.jpg")
 
 # From NumPy array
@@ -92,13 +106,19 @@ with open("passport.jpg", "rb") as f:
     b64 = base64.b64encode(f.read()).decode()
 result = fast_mrz.get_details(b64, input_type="base64")
 
+# From encoded image bytes
+with open("passport.jpg", "rb") as f:
+    result = fast_mrz.get_details(f.read(), input_type="bytes")
+
+# From a PDF (needs: pip install "fastmrz[pdf]")
+result = fast_mrz.get_details("scan.pdf", input_type="pdf")
+
 # From raw MRZ text
 mrz_text = "P<GBRPUDARSAN<<HENERT<<<<<<<<<<<<<<<<<<<<<<<\n7077979792GBR9505209M1704224<<<<<<<<<<<<<<00"
 result = fast_mrz.get_details(mrz_text, input_type="text")
 
 # Get raw MRZ text only
 raw_mrz = fast_mrz.get_details("passport.jpg", ignore_parse=True)
-print(raw_mrz)
 
 # Exclude check digits from output
 result = fast_mrz.get_details("passport.jpg", include_checkdigit=False)
@@ -106,23 +126,93 @@ result = fast_mrz.get_details("passport.jpg", include_checkdigit=False)
 
 ---
 
-### `validate_mrz`
+### `get_details_batch`
 
 ```python
-validate_mrz(mrz_text: str) -> dict
+get_details_batch(
+    inputs: Iterable[InputData],
+    input_type: InputType = "imagepath",
+    ignore_parse: bool = False,
+    include_checkdigit: bool = True,
+    workers: Optional[int] = None,
+) -> List[Union[MRZDetails, str]]
 ```
 
-Validate a raw MRZ text string against ICAO 9303 checksum rules.
+Read many documents in parallel on a thread pool.
 
 **Parameters:**
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `mrz_text` | `str` | Required | Raw MRZ text string to validate. |
+| `inputs` | `Iterable[InputData]` | Required | The documents, all of the same `input_type`. |
+| `input_type`, `ignore_parse`, `include_checkdigit` | | | As for `get_details`. |
+| `workers` | `int \| None` | `None` | Number of threads. Defaults to the number of CPUs, at most 8. `1` reads sequentially. |
 
 **Returns:**
 
-A dictionary with validation result:
+One result per input, **in input order**, as `get_details` would return it. An input that cannot be read does not stop the batch: its result is `{"status": "FAILURE", "status_message": <reason>}`, or `""` with `ignore_parse=True`.
+
+**Example:**
+
+```python
+results = fast_mrz.get_details_batch(["a.jpg", "b.jpg", "missing.jpg"])
+# [{... "status": "SUCCESS"}, {...}, {"status": "FAILURE", "status_message": "Input is not a valid image file."}]
+```
+
+Expect about 1.5x the throughput of a plain loop on a 4-core CPU; OpenCV already uses several cores per image.
+
+---
+
+### `get_mrz_image`
+
+```python
+get_mrz_image(
+    input_data: InputData,
+    input_type: InputType = "imagepath",
+) -> Optional[numpy.ndarray]
+```
+
+Return the MRZ as the recogniser saw it.
+
+**Parameters:**
+
+As for `get_details`; `"text"` is not supported.
+
+**Returns:**
+
+A greyscale `uint8` array: the rectified MRZ lines stacked top to bottom, each 32 x 640 pixels (so 64 x 640 for two-line formats, 96 x 640 for TD1). `None` when no MRZ is found.
+
+**Raises:**
+
+- `ValueError`: the input cannot be read.
+
+**Example:**
+
+```python
+import cv2
+
+strip = fast_mrz.get_mrz_image("passport.jpg")
+if strip is not None:
+    cv2.imwrite("mrz.png", strip)   # 64 x 640 for a passport
+```
+
+---
+
+### `validate_mrz`
+
+```python
+validate_mrz(mrz_text: str) -> Dict[str, Union[bool, str]]
+```
+
+Check the format and every check digit of an MRZ string.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `mrz_text` | `str` | Required | MRZ lines separated by newlines. |
+
+**Returns:**
 
 ```python
 # Valid MRZ
@@ -152,16 +242,18 @@ print(result["is_valid"])  # True
 
 ## Output Format
 
-### Parsed MRZ Dictionary (TD3 - Passport)
+All values are strings. Check-digit keys are left out with `include_checkdigit=False`.
+
+### TD3 (Passport)
 
 ```python
 {
     "mrz_type": "TD3",
     "document_code": "P",
     "issuer_code": "GBR",
+    "document_number": "707797979",
     "surname": "PUDARSAN",
     "given_name": "HENERT",
-    "document_number": "707797979",
     "document_number_checkdigit": "2",
     "nationality_code": "GBR",
     "birth_date": "1995-05-20",
@@ -177,41 +269,41 @@ print(result["is_valid"])  # True
 }
 ```
 
-### Parsed MRZ Dictionary (TD1 - ID Card)
+### TD1 (ID Card)
 
 ```python
 {
     "mrz_type": "TD1",
     "document_code": "I",
     "issuer_code": "UTO",
-    "document_number": "L898902C3",
-    "document_number_checkdigit": "6",
-    "optional_data_1": "",
+    "document_number": "D23145890",
+    "surname": "ERIKSSON",
+    "given_name": "ANNA MARIA",
+    "document_number_checkdigit": "7",
+    "nationality_code": "UTO",
     "birth_date": "1974-08-12",
     "birth_date_checkdigit": "2",
     "sex": "F",
     "expiry_date": "2012-04-15",
     "expiry_date_checkdigit": "9",
-    "nationality_code": "UTO",
-    "optional_data_2": "ZE184226B",
-    "final_checkdigit": "0",
-    "surname": "ERIKSSON",
-    "given_name": "ANNA MARIA",
-    "mrz_text": "...",
+    "optional_data_1": "",
+    "optional_data_2": "",
+    "final_checkdigit": "6",
+    "mrz_text": "I<UTOD231458907<<<<<<<<<<<<<<<\n7408122F1204159UTO<<<<<<<<<<<6\nERIKSSON<<ANNA<MARIA<<<<<<<<<<",
     "status": "SUCCESS"
 }
 ```
 
-### Parsed MRZ Dictionary (TD2)
+### TD2
 
 ```python
 {
     "mrz_type": "TD2",
     "document_code": "I",
     "issuer_code": "UTO",
+    "document_number": "D23145890",
     "surname": "ERIKSSON",
     "given_name": "ANNA MARIA",
-    "document_number": "D23145890",
     "document_number_checkdigit": "7",
     "nationality_code": "UTO",
     "birth_date": "1974-08-12",
@@ -221,30 +313,30 @@ print(result["is_valid"])  # True
     "expiry_date_checkdigit": "9",
     "optional_data": "",
     "final_checkdigit": "6",
-    "mrz_text": "...",
+    "mrz_text": "I<UTOERIKSSON<<ANNA<MARIA<<<<<<<<<<<\nD231458907UTO7408122F1204159<<<<<<<6",
     "status": "SUCCESS"
 }
 ```
 
-### Parsed MRZ Dictionary (MRVA/MRVB - Visa)
+### MRVA / MRVB (Visa)
 
 ```python
 {
     "mrz_type": "MRVA",  # or "MRVB"
     "document_code": "V",
-    "issuer_code": "USA",
-    "surname": "...",
-    "given_name": "...",
-    "document_number": "...",
-    "document_number_checkdigit": "...",
-    "nationality_code": "...",
-    "birth_date": "...",
-    "birth_date_checkdigit": "...",
-    "sex": "...",
-    "expiry_date": "...",
-    "expiry_date_checkdigit": "...",
-    "optional_data": "...",
-    "mrz_text": "...",
+    "issuer_code": "UTO",
+    "document_number": "L8988901C",
+    "surname": "ERIKSSON",
+    "given_name": "ANNA MARIA",
+    "document_number_checkdigit": "4",
+    "nationality_code": "XXX",
+    "birth_date": "1940-09-07",
+    "birth_date_checkdigit": "8",
+    "sex": "F",
+    "expiry_date": "1996-12-10",
+    "expiry_date_checkdigit": "9",
+    "optional_data": "6ZE184226B",
+    "mrz_text": "V<UTOERIKSSON<<ANNA<MARIA<<<<<<<<<<<<<<<<<<<\nL8988901C4XXX4009078F96121096ZE184226B<<<<<<",
     "status": "SUCCESS"
 }
 ```
@@ -255,29 +347,28 @@ Note: MRVA and MRVB do not include `final_checkdigit` or `optional_data_checkdig
 
 ## Field Descriptions
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `mrz_type` | `str` | Document type: `TD1`, `TD2`, `TD3`, `MRVA`, or `MRVB` |
-| `document_code` | `str` | Document type code (e.g., `P` for passport, `I` for ID, `V` for visa) |
-| `issuer_code` | `str` | 3-letter ISO country code of the issuing authority |
-| `surname` | `str` | Holder's surname(s) |
-| `given_name` | `str` | Holder's given name(s) |
-| `document_number` | `str` | Unique document identifier |
-| `document_number_checkdigit` | `str` | Check digit for document number |
-| `nationality_code` | `str` | 3-letter ISO country code of holder's nationality |
-| `birth_date` | `str` | Date of birth in ISO 8601 format (YYYY-MM-DD) |
-| `birth_date_checkdigit` | `str` | Check digit for date of birth |
-| `sex` | `str` | Holder's sex: `M`, `F`, or `<` (unspecified) |
-| `expiry_date` | `str` | Document expiry date in ISO 8601 format (YYYY-MM-DD) |
-| `expiry_date_checkdigit` | `str` | Check digit for expiry date |
-| `optional_data` | `str` | Optional data field (varies by document type) |
-| `optional_data_checkdigit` | `str` | Check digit for optional data (TD3 only) |
-| `optional_data_1` | `str` | First optional data field (TD1 only) |
-| `optional_data_2` | `str` | Second optional data field (TD1 only) |
-| `final_checkdigit` | `str` | Composite check digit |
-| `mrz_text` | `str` | Raw MRZ text as extracted |
-| `status` | `str` | Processing status: `SUCCESS` or `FAILURE` |
-| `status_message` | `str` | Error message (present only when `status` is `FAILURE`) |
+| Key | Formats | Example | Meaning |
+|---|---|---|---|
+| `mrz_type` | all | `TD3` | `TD1`, `TD2`, `TD3`, `MRVA` or `MRVB` |
+| `document_code` | all | `P` | Document type (`P`, `I`, `ID`, `V`, ...) |
+| `issuer_code` | all | `UTO` | Issuing state |
+| `document_number` | all | `L898902C3` | Long TD1 numbers continued in the optional data are joined |
+| `document_number_checkdigit` | all | `6` | |
+| `surname` | all | `ERIKSSON` | |
+| `given_name` | all | `ANNA MARIA` | Given names separated by spaces |
+| `nationality_code` | all | `UTO` | May be empty |
+| `birth_date` | all | `1974-08-12` | `YYYY-MM-DD`; the raw `YYMMDD` if it isn't a calendar date |
+| `birth_date_checkdigit` | all | `2` | |
+| `sex` | all | `F` | `M`, `F`, `X` or `<` |
+| `expiry_date` | all | `2012-04-15` | `YYYY-MM-DD`; the raw `YYMMDD` if it isn't a calendar date |
+| `expiry_date_checkdigit` | all | `9` | |
+| `optional_data` | TD2, TD3, MRVA, MRVB | `ZE184226B` | Personal number / optional data, fillers removed |
+| `optional_data_checkdigit` | TD3 | `1` | |
+| `optional_data_1`, `optional_data_2` | TD1 | | Optional data of line 1 and line 2 |
+| `final_checkdigit` | TD1, TD2, TD3 | `0` | Composite check digit |
+| `mrz_text` | all | | The MRZ lines joined by `\n` |
+| `status` | all | `SUCCESS` | `SUCCESS` when the format and every check digit are valid, else `FAILURE` |
+| `status_message` | on failure | `Final checksum is not matching` | First problem found |
 
 ---
 
@@ -287,8 +378,10 @@ When extraction or validation fails, the response includes a `status` of `"FAILU
 
 | Status Message | Cause |
 |----------------|-------|
-| `"No MRZ detected"` | The segmentation model did not find an MRZ region in the image |
-| `"Invalid MRZ format"` | The extracted text does not match any known MRZ format |
+| `"No MRZ detected"` | No MRZ was found in the image (the result contains only `status` and `status_message`) |
+| `"Invalid MRZ format"` | The text does not match any known MRZ format |
+| `"Invalid date of birth"` | The birth date is not a calendar date |
+| `"Invalid date of expiry"` | The expiry date is not a calendar date |
 | `"Document number checksum is not matching"` | Document number check digit validation failed |
 | `"Date of birth checksum is not matching"` | Birth date check digit validation failed |
 | `"Date of expiry checksum is not matching"` | Expiry date check digit validation failed |
@@ -299,262 +392,16 @@ When extraction or validation fails, the response includes a `status` of `"FAILU
 
 ## Input Validation
 
-The `get_details` method validates input before processing:
-
-- **`imagepath`**: Checks if the file exists using `os.path.isfile()`
-- **`numpy`**: Checks if the array has 3 channels (RGB/BGR)
-- **`base64`**: Decodes and validates the Base64 string
-- **`text`**: Passes directly to the parser
-
-Invalid inputs raise a `ValueError` with a descriptive message.
-
----
-
-## Internal Methods
-
-These methods are used internally and are not part of the public API. They are documented here for reference and debugging purposes.
-
-### `_process_image`
-
-```python
-_process_image(image_path: Union[str, np.ndarray]) -> np.ndarray
-```
-
-Preprocesses an image for ONNX model inference.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `image_path` | `str` or `np.ndarray` | File path or NumPy array of the image |
-
-**Returns:**
-
-Preprocessed image array of shape `(1, 256, 256, 3)`.
-
----
-
-### `_get_roi`
-
-```python
-_get_roi(output_data: np.ndarray, image_path: Union[str, np.ndarray]) -> str
-```
-
-Extracts the MRZ region from the segmentation output and performs OCR.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `output_data` | `np.ndarray` | Segmentation mask from ONNX model |
-| `image_path` | `str` or `np.ndarray` | Original image for ROI extraction |
-
-**Returns:**
-
-Raw OCR text from the MRZ region.
-
----
-
-### `_cleanse_roi`
-
-```python
-_cleanse_roi(mrz_text: str) -> str
-```
-
-Cleanses raw OCR output to extract valid MRZ lines.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `mrz_text` | `str` | Raw OCR output text |
-
-**Returns:**
-
-Cleaned MRZ text with valid lines only.
-
----
-
-### `_parse_mrz`
-
-```python
-_parse_mrz(mrz_text: str, include_checkdigit: bool = True) -> dict
-```
-
-Parses MRZ text into structured fields.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `mrz_text` | `str` | Cleaned MRZ text |
-| `include_checkdigit` | `bool` | Whether to include check digit fields |
-
-**Returns:**
-
-Dictionary with parsed MRZ fields.
-
----
-
-### `_get_checkdigit`
-
-```python
-_get_checkdigit(input_string: str) -> str
-```
-
-Calculates the ICAO 9303 check digit for a given string.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `input_string` | `str` | String to calculate check digit for |
-
-**Returns:**
-
-Single-digit check digit as a string.
-
----
-
-### `_get_final_checkdigit`
-
-```python
-_get_final_checkdigit(input_string: list, input_type: str) -> str
-```
-
-Calculates the composite final check digit.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `input_string` | `list` | List of MRZ lines |
-| `input_type` | `str` | Document type (`TD1`, `TD2`, `TD3`) |
-
-**Returns:**
-
-Final composite check digit as a string.
-
----
-
-### `_format_date`
-
-```python
-_format_date(input_date: str) -> str
-```
-
-Converts YYMMDD date string to ISO 8601 format (YYYY-MM-DD).
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `input_date` | `str` | Date in YYMMDD format |
-
-**Returns:**
-
-Formatted date string in YYYY-MM-DD format.
-
----
-
-### `_get_birth_date`
-
-```python
-_get_birth_date(birth_date_str: str, expiry_date_str: str) -> str
-```
-
-Resolves century ambiguity in birth dates.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `birth_date_str` | `str` | Birth date in YYYY-MM-DD format |
-| `expiry_date_str` | `str` | Expiry date in YYYY-MM-DD format |
-
-**Returns:**
-
-Adjusted birth date string.
-
----
-
-### `_is_valid`
-
-```python
-_is_valid(image: Union[str, np.ndarray]) -> bool
-```
-
-Validates input image.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `image` | `str` or `np.ndarray` | File path or NumPy array |
-
-**Returns:**
-
-`True` if the input is valid, `False` otherwise.
-
----
-
-### `_get_mrz`
-
-```python
-_get_mrz(image: Union[str, np.ndarray]) -> str
-```
-
-End-to-end MRZ extraction from an image.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `image` | `str` or `np.ndarray` | Input image |
-
-**Returns:**
-
-Cleaned MRZ text string.
-
----
-
-### `_image_to_base64`
-
-```python
-_image_to_base64(imagepath: str) -> str
-```
-
-Converts an image file to Base64 string.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `imagepath` | `str` | Path to image file |
-
-**Returns:**
-
-Base64-encoded string.
-
----
-
-### `_base64_to_array`
-
-```python
-_base64_to_array(base64_string: str) -> np.ndarray
-```
-
-Decodes a Base64 string to a NumPy array.
-
-**Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `base64_string` | `str` | Base64-encoded image data |
-
-**Returns:**
-
-NumPy array of the decoded image.
+Inputs that cannot be read raise `ValueError` with a descriptive message:
+
+| `input_type` | Error |
+|---|---|
+| `imagepath` | `Input is not a valid image file.` (missing file) / `Input is not a valid image.` (undecodable) |
+| `numpy` | `Input is not a valid NumPy array.` / `Input is not a valid image.` (empty or wrong shape) |
+| `base64` | `Input is not a valid base64 string.` / `Input is not a valid image.` |
+| `bytes` | `Input is not a valid image.` |
+| `pdf` | `Input is not a valid PDF.` / `PDF input needs PyMuPDF: pip install fastmrz[pdf]` |
+| anything else | `Unsupported input_type: <value>` |
 
 ---
 

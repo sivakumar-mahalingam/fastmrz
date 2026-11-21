@@ -8,9 +8,11 @@ FastMRZ accepts multiple input formats to accommodate different application arch
 
 | Input Type | `input_type` Value | Data Type | Description |
 |------------|-------------------|-----------|-------------|
-| Image Path | `"imagepath"` | `str` | File path to an image |
-| NumPy Array | `"numpy"` | `np.ndarray` | Image as a NumPy array |
-| Base64 String | `"base64"` | `str` | Base64-encoded image data |
+| Image Path | `"imagepath"` | `str` or `pathlib.Path` | File path to an image |
+| NumPy Array | `"numpy"` | `np.ndarray` | Image as a NumPy array (BGR colour or greyscale) |
+| Base64 String | `"base64"` | `str` | Base64-encoded image data, `data:` URL prefix allowed |
+| Image Bytes | `"bytes"` | `bytes` | Encoded image file (JPEG, PNG, ...) |
+| PDF | `"pdf"` | `str`, `Path` or `bytes` | PDF file; needs the `pdf` extra |
 | Raw MRZ Text | `"text"` | `str` | Pre-extracted MRZ text string |
 
 ---
@@ -28,7 +30,7 @@ result = fast_mrz.get_details("path/to/passport.jpg")
 
 **Supported Image Formats:**
 
-Any format supported by OpenCV's `imread`:
+Any format OpenCV can decode:
 - JPEG / JPG
 - PNG
 - BMP
@@ -69,9 +71,9 @@ result = fast_mrz.get_details(image, input_type="numpy")
 ```
 
 **Requirements:**
-- Must be a valid NumPy array
-- Must have 3 channels (RGB or BGR format)
-- Grayscale images are not supported directly
+- Must be a valid, non-empty NumPy array
+- Colour images are expected in BGR order (OpenCV's default); greyscale (2-D or 1 channel) is accepted too
+- Extra channels (e.g. alpha) are ignored; non-`uint8` arrays are rescaled to 0-255
 
 **Example with PIL:**
 
@@ -82,13 +84,9 @@ from fastmrz import FastMRZ
 
 fast_mrz = FastMRZ()
 
-# Load with PIL and convert
-pil_image = Image.open("passport.jpg")
+# Load with PIL as greyscale (avoids the RGB vs BGR question)
+pil_image = Image.open("passport.jpg").convert("L")
 image_array = np.array(pil_image)
-
-# Convert RGBA to RGB if needed
-if image_array.shape[2] == 4:
-    image_array = image_array[:, :, :3]
 
 result = fast_mrz.get_details(image_array, input_type="numpy")
 ```
@@ -155,7 +153,7 @@ def extract_mrz():
 
 **Example with data URL:**
 
-If your Base64 string includes a data URL prefix (e.g., `data:image/jpeg;base64,...`), strip it first:
+A data URL prefix (e.g., `data:image/jpeg;base64,...`) is stripped automatically:
 
 ```python
 import base64
@@ -166,17 +164,57 @@ fast_mrz = FastMRZ()
 # Data URL from browser
 data_url = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ..."
 
-# Strip the prefix
-b64_string = data_url.split(",")[1]
-
-result = fast_mrz.get_details(b64_string, input_type="base64")
+result = fast_mrz.get_details(data_url, input_type="base64")
 ```
+
+---
+
+## Image Bytes
+
+Pass the encoded bytes of an image file, e.g. from an HTTP upload or object storage.
+
+```python
+from fastmrz import FastMRZ
+
+fast_mrz = FastMRZ()
+
+with open("passport.jpg", "rb") as f:
+    result = fast_mrz.get_details(f.read(), input_type="bytes")
+```
+
+**Requirements:**
+- Must decode to an image OpenCV can read (JPEG, PNG, BMP, TIFF, WebP, ...)
+
+---
+
+## PDF
+
+Pass a PDF path or the PDF bytes. Up to the first 10 pages are rendered at 200 dpi, and the first page with an MRZ is used.
+
+PDF input needs [PyMuPDF](https://pymupdf.readthedocs.io/):
+
+```bash
+pip install "fastmrz[pdf]"
+```
+
+```python
+from fastmrz import FastMRZ
+
+fast_mrz = FastMRZ()
+
+result = fast_mrz.get_details("scan.pdf", input_type="pdf")
+
+with open("scan.pdf", "rb") as f:
+    result = fast_mrz.get_details(f.read(), input_type="pdf")
+```
+
+Without PyMuPDF, `ValueError("PDF input needs PyMuPDF: pip install fastmrz[pdf]")` is raised.
 
 ---
 
 ## Raw MRZ Text
 
-Pass pre-extracted MRZ text directly for parsing and validation. This skips the image processing pipeline entirely.
+Pass pre-extracted MRZ text directly for parsing and validation. This skips the image processing pipeline entirely. The text is parsed exactly as given (upper-cased, whitespace removed) and never auto-corrected.
 
 ```python
 from fastmrz import FastMRZ
@@ -222,62 +260,18 @@ print(raw_mrz)
 
 ## Input Validation
 
-FastMRZ validates inputs before processing:
+Inputs that cannot be read raise `ValueError` before any processing:
 
-### Image Path Validation
+| `input_type` | Check | Error message |
+|---|---|---|
+| `imagepath` | File exists and decodes | `Input is not a valid image file.` / `Input is not a valid image.` |
+| `numpy` | Non-empty `ndarray` with 1, 3 or 4 channels | `Input is not a valid NumPy array.` / `Input is not a valid image.` |
+| `base64` | Valid Base64 that decodes to an image | `Input is not a valid base64 string.` / `Input is not a valid image.` |
+| `bytes` | Decodes to an image | `Input is not a valid image.` |
+| `pdf` | PyMuPDF installed, valid PDF | `PDF input needs PyMuPDF: pip install fastmrz[pdf]` / `Input is not a valid PDF.` |
+| `text` | None at input stage | Format and checksums are reported in `status_message` |
 
-```python
-def _is_valid(self, image):
-    if isinstance(image, str):
-        return bool(os.path.isfile(image))
-    elif isinstance(image, np.ndarray):
-        return image.shape[-1] == 3
-```
-
-- Checks if the file exists
-- Raises `ValueError` if the file does not exist
-
-### NumPy Array Validation
-
-- Checks if the array has 3 channels
-- Raises `ValueError` if the array shape is invalid
-
-### Base64 Validation
-
-- Decodes the Base64 string
-- Raises an exception if the string is not valid Base64
-
-### Text Validation
-
-- No validation at input stage
-- Validation occurs during parsing (MRZ format, checksums)
-
----
-
-## Unsupported Formats
-
-### PDF
-
-PDF input is planned but not yet implemented. The `input_type="pdf"` parameter exists in the code but is not functional:
-
-```python
-elif input_type == "pdf":
-    # get_details_from_pdf(input_data, ignore_parse=False, include_checkdigit=True)
-    pass
-```
-
-To process PDFs, convert them to images first:
-
-```python
-import fitz  # PyMuPDF
-
-doc = fitz.open("passport.pdf")
-page = doc[0]
-pix = page.get_pixmap()
-pix.save("passport_page.png")
-
-result = fast_mrz.get_details("passport_page.png")
-```
+`get_details_batch()` does not raise for unreadable inputs: their entries become `{"status": "FAILURE", "status_message": <message>}`.
 
 ---
 
@@ -287,10 +281,12 @@ result = fast_mrz.get_details("passport_page.png")
 |----------|-------------------|
 | Processing local files | `imagepath` |
 | Images already in memory | `numpy` |
-| Web API receiving uploads | `base64` |
+| Web API receiving JSON | `base64` |
+| Web API receiving file uploads | `bytes` |
+| Scanned documents | `pdf` |
 | Validating external OCR output | `text` |
 | Real-time camera feed | `numpy` |
-| Batch processing from disk | `imagepath` |
+| Batch processing from disk | `imagepath` with `get_details_batch()` |
 
 ---
 

@@ -12,13 +12,16 @@
     <img src="https://raw.githubusercontent.com/sivakumar-mahalingam/fastmrz/main/docs/FastMRZ.png" target="_blank" />
 </a>
 
-FastMRZ is an open-source Python package that extracts the Machine Readable Zone (MRZ) from passports and other documents. FastMRZ accepts various input formats such as Image, Base64 string, MRZ string, or NumPy array. 
+FastMRZ is an open-source Python package that extracts the Machine Readable Zone (MRZ) from passports, ID cards and visas. It accepts an image path, NumPy array, Base64 string, encoded image bytes, PDF or MRZ string.
+Pure Python, no Tesseract: the only dependencies are `numpy` and `opencv-python-headless`.
 
 [Features](#features) •
 [Built With](#built-with) •
-[Prerequisites](#prerequisites) •
-[Installation](#installation) •
-[Example](#example) •
+[Requirements](#requirements) •
+[Install](#install) •
+[Usage](#usage) •
+[API reference](#api-reference) •
+[Benchmark](#benchmark) •
 [Documentation](#documentation) •
 [Wiki](#wiki) •
 [ToDo](#todo) •
@@ -42,84 +45,174 @@ Comprehensive documentation is available at the [FastMRZ Documentation Site](htt
 
 ## ️✨Features
 
-- 👁️Detects and extracts the MRZ region from document images
-- ️🔍Contour detection to accurately identify the MRZ area
-- 🎨Custom trained models using ONNX 
-- 🆗Contains checksum logics for data validation
-- 📤Outputs the extracted MRZ region as text/json
+- 👁️Detects and extracts the MRZ region from document images, at any rotation, skew or perspective
+- 🎨Built-in 2.4 MB ONNX recogniser run through OpenCV: no Tesseract or GPU needed
+- 🆗Check digits validated per ICAO 9303, with automatic repair of misread characters
+- 📄Image path, NumPy array, Base64, bytes, PDF and MRZ text input; parallel batch processing
+- 📤Outputs the extracted MRZ as text or a parsed dict
 
 
 ## 🛠️Built With
 
 ![OpenCV](https://img.shields.io/badge/OpenCV-27338e?style=for-the-badge&logo=OpenCV&logoColor=white)
-![Tesseract OCR](https://img.shields.io/badge/Tesseract%20OCR-0F9D58?style=for-the-badge&logo=google&logoColor=white)
 ![NumPy](https://img.shields.io/badge/numpy-316192?style=for-the-badge&logo=numpy&logoColor=white)
 ![ONNX](https://img.shields.io/badge/ONNX-7B7B7B?style=for-the-badge&logo=onnx&logoColor=white)
 
-## 🚨Prerequisites
-- Install [Tesseract OCR](https://tesseract-ocr.github.io/tessdoc/Installation.html) engine. And set `PATH` variable with the executable and ensure that tesseract can be reached from the command line. 
+## 📋Requirements
 
-## ⚙️Installation
+| | Supported | Tested |
+|---|---|---|
+| Python | 3.8 or newer | 3.8, 3.9, 3.10, 3.11, 3.12, 3.13 |
+| numpy | any version that matches your OpenCV | 1.24.4 to 2.5.5 |
+| opencv-python-headless | 4.8 or newer | 4.8.1, 5.0.0, 5.1.0 |
+| PyMuPDF (optional, PDF input only) | 1.23 or newer, except 1.26.5 and 1.26.6 (security advisory) | 1.23.26, 1.24.11, 1.26.4, 2.1 |
 
-1. Install `fastmrz`
-    ```bash
-    pip install fastmrz
-    ```
-   This can be done through conda too if you prefer.
+No Tesseract, PyTorch or GPU needed. Retraining the model (`tools/`) is separate and needs Python 3.13, see [`tools/README.md`](tools/README.md).
 
-     ```bash
-     conda create -n fastmrz tesseract -c conda-forge
-     conda activate fastmrz
-     ```
+## ⚙️Install
 
-2. Copy  the `mrz.traineddata` file from the `tessdata` folder of the [repository](https://github.com/sivakumar-mahalingam/fastmrz/raw/main/tessdata/mrz.traineddata) into the `tessdata` folder of the Tesseract installation on **YOUR MACHINE**
+```bash
+pip install fastmrz
+pip install "fastmrz[pdf]"     # optional: PDF input (PyMuPDF)
+```
 
-## 💡Example
+From a clone of this repository: `pip install .` or `pip install ".[pdf]"`.
 
-```Python
+> **Upgrading from 2.x:** Tesseract and `mrz.traineddata` were removed in v3; you no longer need to install them.
+
+## 💡Usage
+
+```python
 from fastmrz import FastMRZ
-import json
 
 fast_mrz = FastMRZ()
-# Pass file path of installed Tesseract OCR, incase if not added to PATH variable
-# fast_mrz = FastMRZ(tesseract_path=r'/opt/homebrew/Cellar/tesseract/5.3.4_1/bin/tesseract') # Default path in Mac
-# fast_mrz = FastMRZ(tesseract_path=r'C:\\Program Files\\Tesseract-OCR\\tesseract.exe') # Default path in Windows
-passport_mrz = fast_mrz.get_details("../data/passport_uk.jpg", include_checkdigit=False)
-print("JSON:")
-print(json.dumps(passport_mrz, indent=4))
 
-print("\n")
+details = fast_mrz.get_details("data/td3.jpg")                       # parsed dict
+text = fast_mrz.get_details("data/td3.jpg", ignore_parse=True)       # raw MRZ text
+details = fast_mrz.get_details(image_array, input_type="numpy")      # BGR/gray ndarray
+details = fast_mrz.get_details(b64_string, input_type="base64")
+details = fast_mrz.get_details(image_bytes, input_type="bytes")
+details = fast_mrz.get_details("scan.pdf", input_type="pdf")         # path or bytes, first page with an MRZ
+details = fast_mrz.get_details(mrz_string, input_type="text")        # parse only
 
-passport_mrz = fast_mrz.get_details("../data/passport_uk.jpg", ignore_parse=True)
-print("TEXT:")
-print(passport_mrz)
+is_valid = fast_mrz.validate_mrz(mrz_string)                          # {"is_valid": ..., "status_message": ...}
+strip = fast_mrz.get_mrz_image("data/td3.jpg")                        # rectified MRZ crop
+
+results = fast_mrz.get_details_batch(["a.jpg", "b.jpg", "c.jpg"])      # many images, in parallel
 ```
 
-**OUTPUT:**
-```Console
-JSON:
-{
-    "mrz_type": "TD3",
-    "document_code": "P",
-    "issuer_code": "GBR",
-    "surname": "PUDARSAN",
-    "given_name": "HENERT",
-    "document_number": "707797979",
-    "document_number_checkdigit": "2",
-    "nationality_code": "GBR",
-    "birth_date": "1995-05-20",
-    "sex": "M",
-    "expiry_date": "2017-04-22",
-    "optional_data": "",
-    "mrz_text": "P<GBRPUDARSAN<<HENERT<<<<<<<<<<<<<<<<<<<<<<<\n7077979792GBR9505209M1704224<<<<<<<<<<<<<<00",
-    "status": "SUCCESS"
-}
+`get_details_batch(inputs, input_type="imagepath", ignore_parse=False, include_checkdigit=True, workers=None)`
+returns results in input order and takes the same options as `get_details`. `workers` defaults to the number of CPUs (max 8).
+A file that cannot be read does not stop the batch: its entry is `{"status": "FAILURE", "status_message": ...}` (or `""` with `ignore_parse=True`).
+Expect about 1.5x the throughput of a plain loop on a 4-core CPU; OpenCV already uses several cores per image.
 
+`FastMRZ(tesseract_path=..., tessdata_path=...)` is still accepted so existing code keeps working, but Tesseract was removed in v3: both arguments are ignored and raise a `FutureWarning`; remove them.
 
-TEXT:
-P<GBRPUDARSAN<<HENERT<<<<<<<<<<<<<<<<<<<<<<<
-7077979792GBR9505209M1704224<<<<<<<<<<<<<<00
-```
+One `FastMRZ` instance can be shared across threads.
+
+Supported formats: TD1 (3x30), TD2 (2x36), TD3 (2x44), MRV-A (2x44), MRV-B (2x36).
+
+## 📖API reference
+
+Type hints are included (`py.typed`), so editors and type checkers see the types below.
+
+### `FastMRZ(tesseract_path="", tessdata_path="", model_path=None)`
+
+| Parameter | Type | Default | Meaning |
+|---|---|---|---|
+| `tesseract_path` | `str` | `""` | Deprecated (Tesseract removed in v3), ignored, raises `FutureWarning` |
+| `tessdata_path` | `str` | `""` | Deprecated (Tesseract removed in v3), ignored, raises `FutureWarning` |
+| `model_path` | `str \| PathLike \| None` | `None` | Replacement recogniser ONNX model; default is the bundled one |
+
+### Methods
+
+| Method | Returns | Raises |
+|---|---|---|
+| `get_details(input_data, input_type="imagepath", ignore_parse=False, include_checkdigit=True)` | `dict[str, str]`; with `ignore_parse=True` the MRZ text (`str`, `""` if none found) | `ValueError` if the input can't be read |
+| `get_details_batch(inputs, input_type="imagepath", ignore_parse=False, include_checkdigit=True, workers=None)` | `list`, one `get_details` result per input, in order | Nothing per input: unreadable inputs become `FAILURE` entries |
+| `get_mrz_image(input_data, input_type="imagepath")` | `numpy.ndarray` (grey, `uint8`, 32 x 640 per MRZ line) or `None` | `ValueError` if the input can't be read |
+| `validate_mrz(mrz_text)` | `{"is_valid": bool, "status_message": str}` | - |
+
+### `input_type`
+
+| Value | `input_data` |
+|---|---|
+| `"imagepath"` | Path to an image file (`str` or `pathlib.Path`) |
+| `"numpy"` | Image array, BGR colour or greyscale |
+| `"base64"` | Base64 encoded image file; `data:image/...;base64,` prefix allowed |
+| `"bytes"` | Encoded image file (JPEG, PNG, ...) |
+| `"pdf"` | Path or bytes of a PDF; first page (of up to 10) with an MRZ. Needs `pip install "fastmrz[pdf]"` |
+| `"text"` | MRZ text, lines separated by `\n`; parsed only, never auto-corrected |
+
+### Output fields
+
+All values are strings. Check-digit keys are left out with `include_checkdigit=False`.
+
+| Key | Formats | Example | Meaning |
+|---|---|---|---|
+| `mrz_type` | all | `TD3` | `TD1`, `TD2`, `TD3`, `MRVA` or `MRVB` |
+| `document_code` | all | `P` | Document type (`P`, `I`, `ID`, `V`, ...) |
+| `issuer_code` | all | `UTO` | Issuing state |
+| `document_number` | all | `L898902C3` | Long TD1 numbers continued in the optional data are joined |
+| `document_number_checkdigit` | all | `6` | |
+| `surname` | all | `ERIKSSON` | |
+| `given_name` | all | `ANNA MARIA` | Given names separated by spaces |
+| `nationality_code` | all | `UTO` | May be empty |
+| `birth_date` | all | `1974-08-12` | `YYYY-MM-DD`; the raw `YYMMDD` if it isn't a calendar date |
+| `birth_date_checkdigit` | all | `2` | |
+| `sex` | all | `F` | `M`, `F`, `X` or `<` |
+| `expiry_date` | all | `2012-04-15` | `YYYY-MM-DD`; the raw `YYMMDD` if it isn't a calendar date |
+| `expiry_date_checkdigit` | all | `9` | |
+| `optional_data` | TD2, TD3, MRVA, MRVB | `ZE184226B` | Personal number / optional data, fillers removed |
+| `optional_data_checkdigit` | TD3 | `1` | |
+| `optional_data_1`, `optional_data_2` | TD1 | | Optional data of line 1 and line 2 |
+| `final_checkdigit` | TD1, TD2, TD3 | `0` | Composite check digit |
+| `mrz_text` | all | | The MRZ lines joined by `\n` |
+| `status` | all | `SUCCESS` | `SUCCESS` when the format and every check digit are valid, else `FAILURE` |
+| `status_message` | on failure | `Final checksum is not matching` | First problem found |
+
+When no MRZ is found the result is only `{"status": "FAILURE", "status_message": "No MRZ detected"}`.
+
+Other `status_message` values: `Invalid MRZ format`, `Invalid date of birth`, `Invalid date of expiry`,
+`Document number checksum is not matching`, `Date of birth checksum is not matching`,
+`Date of expiry checksum is not matching`, `Optional data checksum is not matching`.
+
+## 📊Benchmark
+
+42 labelled real images (35 from [MRZ-Benchmark](https://github.com/tony-xlh/MRZ-Benchmark) plus the 7 samples in `data/`), exact match of the full MRZ text. The stress set applies 15 perturbations to 40 of them (600 images).
+
+| Test | fastmrz 2.x | fastmrz 3.0 |
+|---|---|---|
+| Clean images, exact match | 27/42 | 41/42 |
+| Clean images, character accuracy | 81.9% | 99.97% |
+| Stress set total | 154/600 (25.7%) | 595/600 (99.2%) |
+| Time per image, average (CPU) | 0.74 s | 0.11 s |
+
+Stress set by perturbation (out of 40):
+
+| Perturbation | 2.x | 3.0 |
+|---|---|---|
+| none | 24 | 40 |
+| rotate 5 / 15 / 30 / 45 deg | 0 / 0 / 0 / 0 | 40 / 40 / 39 / 40 |
+| rotate 90 / 180 / 270 deg | 0 / 0 / 0 | 40 / 39 / 40 |
+| downscale 0.6x | 18 | 40 |
+| blur | 22 | 39 |
+| perspective | 10 | 40 |
+| JPEG quality 20 | 24 | 40 |
+| dark | 17 | 40 |
+| noise | 21 | 39 |
+| small document in a larger scene | 18 | 39 |
+
+Single MRZ lines: 1,034 real lines held out from the Doubango dataset (source images never used in training) are read exactly in 97.1% of cases (character error 0.14%).
+
+Reproduce with `python tools/benchmark.py <image dir> <ground truth json>`.
+
+## 🙌Credits
+
+The recogniser is fine-tuned on the MRZ line dataset of
+[DoubangoTelecom/tesseractMRZ](https://github.com/DoubangoTelecom/tesseractMRZ),
+Copyright (c) 2019, DoubangoTelecom, BSD 3-Clause License. Benchmark images come from
+[tony-xlh/MRZ-Benchmark](https://github.com/tony-xlh/MRZ-Benchmark).
 
 ## 📃Wiki
 
@@ -152,13 +245,13 @@ Now, based on the example of a national passport, let us take a closer look at t
 - [x] Support mrz text as input
 - [x] Support base64 as input
 - [x] Add documentation page
-- [ ] Support pdf as input
-- [ ] Bulk process
+- [x] Support pdf as input
+- [x] Bulk process
 - [ ] Add function parameter - Image Enhancement Model
 - [ ] Add function parameter - Text Image Enhancement Model
-- [ ] Train Tesseract model with additional data
+- [x] Replace Tesseract with a built-in ONNX recogniser (Tesseract removed in v3)
 - [x] Add function parameter - include_checkdigit
-- [ ] Add function - get_mrz_image
+- [x] Add function - get_mrz_image
 - [x] Add function - validate_mrz
 - [ ] Add function - generate_mrz
 - [ ] Extract face image
