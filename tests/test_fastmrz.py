@@ -19,7 +19,7 @@ MRVA = "V<UTOERIKSSON<<ANNA<MARIA<<<<<<<<<<<<<<<<<<<\nL8988901C4XXX4009078F96121
 MRVB = "V<UTOERIKSSON<<ANNA<MARIA<<<<<<<<<<<\nL8988901C4XXX4009078F9612109<<<<<<<<"
 UK = "P<GBRPUDARSAN<<HENERT<<<<<<<<<<<<<<<<<<<<<<<\n7077979792GBR9505209M1704224<<<<<<<<<<<<<<00"
 
-# synthetic Chinese passports (tools/make_chn_samples.py): line 2 has no "<" filler
+# synthetic Chinese passports: line 2 has no "<" filler
 CHN = {
     "chn_passport_scan.jpg": "POCHNZHANG<<WEI<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\nE123456782CHN9001011M3001019LCOCKMNMNEPDA964",
     "chn_passport_photo.jpg": "POCHNLI<<XIAO<MING<<<<<<<<<<<<<<<<<<<<<<<<<<\nEA98765430CHN8512316F2806158MHLPHNPOLNNHA978",

@@ -1,0 +1,34 @@
+name: Improvement
+description: Suggest an improvement to existing behaviour, performance, code or documentation
+labels: ["improvement"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Accuracy
+        - Performance
+        - Code quality / refactor
+        - Documentation
+        - Packaging / dependencies
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: Current behaviour
+      description: What exists today and what could be better?
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested improvement
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context

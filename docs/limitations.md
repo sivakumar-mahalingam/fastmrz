@@ -8,9 +8,9 @@ This document outlines the current limitations and known issues of FastMRZ 3.
 
 ### Known misses
 
-On the benchmark (42 clean real images, 600 perturbed ones), FastMRZ 3 reads 41/42 clean images and 595/600 perturbed ones exactly. Known weak spots:
+Known weak spots:
 
-- **Non-standard line length:** the one clean miss is a sample document that prints a 43-character line. The output is padded to the standard 44.
+- **Non-standard line length:** some documents print a 43-character line. The output is padded to the standard 44.
 - **Look-alike characters without a check digit:** `0`/`O`, `0`/`D` and `O`/`Q` in names, optional data or alphanumeric document numbers depend purely on the glyph shape. Fonts far from OCR-B are less reliable there. Fields with a check digit are repaired automatically.
 - **Very small print:** MRZ characters smaller than about 8 px high are not readable.
 
@@ -84,7 +84,7 @@ Other platforms (e.g., mobile, embedded systems) are not officially supported.
 
 ### Python Version
 
-Requires Python 3.8 or higher. Retraining the recogniser (`tools/`) is separate and needs Python 3.13.
+Requires Python 3.8 or higher.
 
 ### Architecture
 

@@ -48,7 +48,7 @@ from fastmrz import FastMRZ
 
 fast_mrz = FastMRZ()
 
-# With a retrained recogniser
+# With a custom recogniser model
 fast_mrz = FastMRZ(model_path="models/mrz_rec.onnx")
 ```
 

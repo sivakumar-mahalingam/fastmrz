@@ -95,7 +95,7 @@ One `FastMRZ` instance loads the model once and can be shared across threads, so
 
 ### Custom recogniser model
 
-To use a retrained recogniser (see `tools/README.md` in the repository), pass its path:
+To use a custom recogniser model, pass its path:
 
 ```python
 fast_mrz = FastMRZ(model_path="path/to/mrz_rec.onnx")
