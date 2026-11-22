@@ -7,6 +7,10 @@
 [![Downloads](https://static.pepy.tech/badge/fastmrz)](https://pypistats.org/packages/fastmrz)
 [![CodeQL](https://github.com/sivakumar-mahalingam/fastmrz/actions/workflows/codeql.yml/badge.svg)](https://github.com/sivakumar-mahalingam/fastmrz/actions/workflows/codeql.yml)
 [![License](https://img.shields.io/badge/license-Apache%202.0-34D058?color=blue)](https://github.com/sivakumar-mahalingam/fastmrz/blob/main/LICENSE)
+[![DeepWiki](https://img.shields.io/badge/DeepWiki-fastmrz-blue.svg)](https://deepwiki.com/sivakumar-mahalingam/fastmrz)
+[![Known Vulnerabilities](https://img.shields.io/badge/Snyk_security-monitored-blue)](https://security.snyk.io/package/pip/fastmrz)
+[![CodeFactor](https://www.codefactor.io/repository/github/sivakumar-mahalingam/fastmrz/badge)](https://www.codefactor.io/repository/github/sivakumar-mahalingam/fastmrz)
+[![llms.txt](https://img.shields.io/badge/llms.txt-%E2%9C%93-blue)](https://context7.com/sivakumar-mahalingam/fastmrz/llms.txt)
 
 <a href="https://github.com/sivakumar-mahalingam/fastmrz/" target="_blank">
     <img src="https://raw.githubusercontent.com/sivakumar-mahalingam/fastmrz/main/docs/FastMRZ.png" alt="FastMRZ" />
