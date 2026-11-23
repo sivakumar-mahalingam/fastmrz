@@ -1,4 +1,4 @@
-# FastMRZ
+# FastMRZ - Python Passport MRZ Reader, Parser and Validator
 
 <div align="center">
 
@@ -13,16 +13,19 @@
 [![CodeQL](https://github.com/sivakumar-mahalingam/fastmrz/actions/workflows/codeql.yml/badge.svg)](https://github.com/sivakumar-mahalingam/fastmrz/actions/workflows/codeql.yml)
 
 <a href="https://github.com/sivakumar-mahalingam/fastmrz/" target="_blank">
-    <img src="https://raw.githubusercontent.com/sivakumar-mahalingam/fastmrz/main/docs/FastMRZ.png" alt="FastMRZ" />
+    <img src="https://raw.githubusercontent.com/sivakumar-mahalingam/fastmrz/main/docs/FastMRZ.png" alt="FastMRZ Python passport MRZ reader" />
 </a>
 
-**A lightweight Python MRZ reader for passports, ID cards and visas.**
+**An open-source Python MRZ scanner and OCR reader for passports, identity cards and visas.**
 
-FastMRZ uses OpenCV to detect and rectify the MRZ, then reads it with a bundled ONNX model. It does not use or
-require Tesseract, PaddleOCR, PyTorch or a GPU. Images, PDFs or raw MRZ text in; validated, parsed fields out.
+FastMRZ detects, reads, parses and validates machine-readable zones (MRZ) from passport, ID card and visa images,
+PDFs, Base64 data and raw text. It combines OpenCV detection, a bundled ONNX recognition model and ICAO 9303
+check-digit validation for KYC, AML, onboarding and identity verification workflows. It does not use or require
+Tesseract, PaddleOCR, PyTorch or a GPU.
 
 [Quick start](#quick-start) •
 [Features](#features) •
+[Identity verification](#identity-verification-use-cases) •
 [Installation](#installation) •
 [Usage](#usage) •
 [API reference](#api-reference) •
@@ -78,6 +81,18 @@ details = fast_mrz.get_details("data/td3.jpg")
 - **Flexible input:** image path, NumPy array, Base64, encoded bytes, PDF, or MRZ text.
 - **Batch processing:** `get_details_batch` reads many documents in parallel; one unreadable file never stops the batch.
 - **Typed API:** ships with `py.typed` and exported `MRZDetails`, `InputType` and `InputData` types.
+
+## Identity verification use cases
+
+FastMRZ is designed to serve as the MRZ extraction and validation layer in production identity workflows, including:
+
+- KYC and AML identity verification systems
+- Customer authentication and onboarding workflows
+- Border control and compliance applications
+
+Its detection pipeline, ICAO 9303 validation and check-digit-guided repair make it resilient to OCR noise and
+partially corrupted MRZ lines. Batch processing, typed results and explicit failure statuses help make integration
+into enterprise workflows predictable.
 
 ## Installation
 
@@ -239,6 +254,23 @@ Other `status_message` values: `Invalid MRZ format`, `Invalid date of birth`, `I
 All formats follow [ICAO Doc 9303](https://www.icao.int/publications/doc-series/doc-9303).
 
 ## FAQ
+
+### How do I read a passport MRZ in Python?
+
+Install FastMRZ with `pip install fastmrz`, create a `FastMRZ` instance and pass the passport image to
+`get_details`. The result contains parsed identity fields, dates, document numbers, check digits and validation
+status. See the [quick start](#quick-start) for a complete example.
+
+### Can FastMRZ be used for KYC and AML identity verification?
+
+Yes. FastMRZ can provide MRZ extraction, parsing and ICAO 9303 validation within a KYC, AML or customer onboarding
+system. It is a focused MRZ component, not a complete identity-proofing or compliance platform; document
+authenticity checks, biometric matching and sanctions screening must be handled separately when required.
+
+### Does FastMRZ support passport and ID card OCR?
+
+Yes. FastMRZ reads the machine-readable zone on supported passports, identity cards and visas from images or PDFs.
+It does not extract general visual-zone text outside the MRZ.
 
 ### Does FastMRZ use Tesseract?
 
